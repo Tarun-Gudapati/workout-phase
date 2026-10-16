@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Jin-Woo Build Protocol - Nutrition Blueprint v2.1</title>
+<style>
+  @page { size: letter; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: Arial, "Liberation Sans", Helvetica, sans-serif; color: #1f2937; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 8.5in; height: 11in; padding: 0.5in 0.7in 0.8in 0.7in; position: relative; page-break-after: always; overflow: hidden; }
+  .page:last-child { page-break-after: auto; }
+  .footer { position: absolute; left: 0.7in; bottom: 0.42in; font-size: 7pt; color: #6b7280; }
+  .footer .pg { margin-left: 1.1in; }
+  .footer .pg b { font-size: 9pt; color: #1f2937; font-weight: normal; }
+
+  .band { background: #111827; color: #fff; padding: 10px 12px 12px 12px; margin-bottom: 16px; }
+  .band h1 { margin: 0; font-size: 14pt; font-weight: bold; letter-spacing: 0.2px; }
+  .band p { margin: 2px 0 0 0; font-size: 7.5pt; color: #d1d5db; }
+
+  h2 { font-family: Calibri, Carlito, Arial, sans-serif; font-size: 14pt; margin: 14px 0 8px 0; color: #111827; }
+  h3 { font-size: 10.5pt; color: #6d5dfb; margin: 12px 0 6px 0; }
+  p.body { font-size: 9pt; line-height: 1.35; margin: 4px 0 6px 0; }
+  ul { margin: 4px 0 6px 0; padding-left: 18px; }
+  li { font-size: 9pt; line-height: 1.35; margin-bottom: 3px; }
+
+  table.grid { width: 100%; border-collapse: collapse; margin: 0 0 6px 0; }
+  table.grid th { background: #111827; color: #fff; font-size: 7.5pt; font-weight: bold; padding: 7px 6px; text-align: center; border: 0.75px solid #111827; }
+  table.grid td { font-size: 7.8pt; padding: 6px 6px; border: 0.75px solid #9ca3af; vertical-align: middle; line-height: 1.3; }
+  table.grid tr:nth-child(even) td { background: #f9fafb; }
+  table.grid td.k { font-weight: bold; }
+  table.grid tr.new td { background: #eeeafe; }
+  .tag { display: inline-block; font-size: 6.5pt; font-weight: bold; color: #fff; background: #6d5dfb; padding: 1px 4px; border-radius: 2px; margin-left: 4px; vertical-align: 1px; }
+
+  table.callout { width: 100%; border-collapse: collapse; margin: 8px 0 8px 0; }
+  table.callout td { vertical-align: top; padding: 9px 10px; }
+  table.callout td.label { width: 50%; background: #6d5dfb; color: #fff; font-size: 7.5pt; font-weight: bold; text-align: center; }
+  table.callout.red td.label { background: #b91c1c; }
+  table.callout.dark td.label { background: #111827; }
+  table.callout td.text { background: #f4f5f7; font-size: 8.8pt; font-weight: bold; color: #1f2937; line-height: 1.35; }
+  table.callout td.text span.n { font-weight: normal; }
+
+  .cover-strip { background: #111827; color: #fff; text-align: center; font-size: 7.5pt; font-weight: bold; padding: 8px; margin-top: 0.1in; }
+  .cover-title { text-align: center; font-size: 30pt; font-weight: bold; color: #111827; margin: 22px 0 8px 0; }
+  .cover-sub { text-align: center; font-size: 10pt; color: #6b7280; line-height: 1.4; margin: 0 0.1in 18px 0.1in; }
+  .stats { display: flex; background: #eeeafe; padding: 10px 0 12px 0; margin-bottom: 18px; }
+  .stats div { flex: 1; text-align: center; }
+  .stats .v { font-size: 14pt; font-weight: bold; color: #6d5dfb; }
+  .stats .l { font-size: 6pt; font-weight: bold; color: #6b7280; margin-top: 2px; }
+  .version { text-align: center; font-size: 7.5pt; color: #6b7280; margin: 12px 0 20px 0; }
+
+  table.sheet { width: 100%; border-collapse: collapse; }
+  table.sheet th { background: #111827; color: #fff; font-size: 7pt; padding: 6px 3px; border: 0.75px solid #111827; }
+  table.sheet td { border: 0.75px solid #9ca3af; height: 0.36in; font-size: 8pt; text-align: center; }
+  table.sheet td:last-child { width: 1.6in; }
+  .checks li { list-style: none; margin-left: -14px; }
+  .checks li::before { content: "\2610"; margin-right: 6px; }
+  .refs li { font-size: 8.2pt; }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<div class="page">
+  <div class="cover-strip">JIN-WOO BUILD PROTOCOL</div>
+  <div class="cover-title">NUTRITION BLUEPRINT</div>
+  <div class="cover-sub">A measured cutting diet built around the foods you already eat - with clear adjustment rules so the plan evolves with your body.</div>
+  <div class="stats">
+    <div><div class="v">6'1"</div><div class="l">HEIGHT</div></div>
+    <div><div class="v">83 kg</div><div class="l">WEIGHT</div></div>
+    <div><div class="v">88 -&gt; 83</div><div class="l">TREND</div></div>
+    <div><div class="v">V-taper</div><div class="l">GOAL</div></div>
+  </div>
+  <table class="callout"><tr>
+    <td class="label">MISSION</td>
+    <td class="text">Phase 1 is not a crash cut. Keep strength stable, uncover the waist gradually, and preserve the muscle base that will support the later lean-gain phase.</td>
+  </tr></table>
+  <div class="version">Version 2.1 &nbsp;|&nbsp; October 2026</div>
+
+  <h2>What changed in v2.1</h2>
+  <table class="grid">
+    <tr><th style="width:24%">Page</th><th>Change</th></tr>
+    <tr><td class="k">2 - Targets</td><td>Protein is now "175 g minimum". The base day already gives ~175 g. Added how the 2,500 kcal start was set.</td></tr>
+    <tr><td class="k">3 - Base day</td><td>The idli swap now says exactly what it replaces, keeps 2 fruit servings, and stays calorie-neutral.</td></tr>
+    <tr><td class="k">4 - Scale rules</td><td>Added a lactose check for the daily curd.</td></tr>
+    <tr><td class="k">5 - Vegetables</td><td>Added a 3-week fiber ramp so the jump from "very low" vegetables does not cause bloating.</td></tr>
+    <tr><td class="k">6 - Algorithm</td><td>Steps fix: 150 kcal is ~3,000 extra steps, not 1,000-1,500. Rows now run in priority order, with no gaps. Added a creatine water-weight rule.</td></tr>
+    <tr><td class="k">7 - Training day</td><td>Added badminton-day and rest-day rules.</td></tr>
+    <tr><td class="k">8 - Supplements</td><td>Creatine water-weight warning. Isabgol water and medicine timing.</td></tr>
+    <tr><td class="k">9-10 - Tracking</td><td>Added a sleep target. Clarified the adherence target.</td></tr>
+  </table>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>1</b></span></div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page">
+  <div class="band"><h1>PHASE 1 TARGETS</h1><p>Run this baseline for 14 days before making changes unless energy or performance clearly deteriorates. If you start creatine, read the creatine rule on page 6 first.</p></div>
+  <table class="grid">
+    <tr><th style="width:24%">Metric</th><th style="width:30%">Starting target</th><th>How to judge it</th></tr>
+    <tr><td class="k">Calories</td><td>~2,500 kcal/day</td><td>Use food labels + your scale. A daily range of ~2,450-2,550 is fine. Calories are the main limit: if protein and fat land high, carbs come down.</td></tr>
+    <tr class="new"><td class="k">Protein <span class="tag">UPDATED</span></td><td>175 g minimum (175-185 g/day)</td><td>Hit 175 g every day. The base day already gives ~175 g, so you do not need extra food or an extra scoop to reach it.</td></tr>
+    <tr><td class="k">Fat</td><td>65-75 g/day</td><td>Do not aggressively slash fats.</td></tr>
+    <tr><td class="k">Carbohydrate</td><td>~285-310 g/day</td><td>Use the rest of calories here to support lifting + badminton.</td></tr>
+    <tr><td class="k">Vegetables</td><td>300-500 g/day</td><td>At least 2 large servings; use variety across the week. Build up over 3 weeks (page 5).</td></tr>
+    <tr><td class="k">Fruit</td><td>2-3 servings/day</td><td>Bananas are fine; rotate in guava, orange, apple, papaya, berries when available.</td></tr>
+    <tr><td class="k">Steps</td><td>8-10k average</td><td>Increase from your current ~7k gradually.</td></tr>
+    <tr><td class="k">Water / fluids</td><td>Usually ~3-4 L/day for you</td><td>Adjust to thirst, heat and sweat; do not force 7 L.</td></tr>
+    <tr><td class="k">Sleep <span class="tag">NEW</span></td><td>7-8 h/night</td><td>With a 05:30 first meal, lights out by ~21:30-22:00.</td></tr>
+    <tr><td class="k">Rate of loss</td><td>~0.25-0.5 kg/week</td><td>Judge using the 7-day average, not single weigh-ins.</td></tr>
+  </table>
+  <table class="callout"><tr>
+    <td class="label">PHASE ENDPOINT</td>
+    <td class="text">Your first physique checkpoint is around 79-80 kg, but the mirror, waist, strength and photos decide whether you keep cutting. The scale number is not the final goal.</td>
+  </tr></table>
+  <table class="callout dark"><tr>
+    <td class="label">HOW 2,500 KCAL WAS SET</td>
+    <td class="text">Estimated maintenance: ~2,900-3,100 kcal/day <span class="n">(6'1", 83 kg, lifting, badminton, ~7k steps).</span> 2,500 kcal is a ~400-600 kcal daily deficit. <span class="n">This is an estimate. Your first 14 days of scale and waist data replace it.</span></td>
+  </tr></table>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>2</b></span></div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page">
+  <div class="band"><h1>YOUR MEASURED BASE DAY</h1><p>Approximate macros depend on the exact Fuel One, Amul and Yoga Bar labels you buy. Log the package values rather than trusting generic database entries.</p></div>
+  <table class="grid">
+    <tr><th style="width:13%">Time</th><th style="width:18%">Meal</th><th style="width:37%">Measured foods</th><th style="width:16%">Approx kcal</th><th>Approx protein</th></tr>
+    <tr><td>05:30</td><td>Overnight whey oats</td><td>Fuel One Whey Max 1 scoop + oats 45 g + Amul lactose-free milk 150 ml + mixed chia/pumpkin/sunflower seeds 15 g TOTAL + isabgol 5 g</td><td>~500 kcal</td><td>~41 g</td></tr>
+    <tr><td>09:00</td><td>Fruit meal</td><td>2 medium bananas</td><td>~210 kcal</td><td>~3 g</td></tr>
+    <tr><td>12:00</td><td>Pre-workout</td><td>Yoga Bar muesli 40 g + Amul lactose-free milk 150 ml</td><td>~245 kcal</td><td>~9 g</td></tr>
+    <tr><td>14:30-15:00</td><td>Post-workout lunch</td><td>Chicken breast 300 g RAW + cooked rice 220 g + curd 200 g + vegetables 300 g + light oil spray</td><td>~850-900 kcal</td><td>~80-85 g</td></tr>
+    <tr><td>19:00-20:00</td><td>Dinner</td><td>4 whole eggs + cooked rice 180 g + curd 150 g + vegetables 200 g</td><td>~650-700 kcal</td><td>~35-40 g</td></tr>
+  </table>
+  <p class="body">Approximate day total: ~2,500 kcal, ~175 g protein, ~290-300 g carbohydrate, ~60-70 g fat. Brand labels, curd fat percentage, banana size, chutney/oil and cooking method can move this meaningfully.</p>
+
+  <h3>Idli day (optional swap) <span class="tag">REWRITTEN</span></h3>
+  <p class="body">Idli + sambar replaces the 2 bananas at 9 AM. Make the three other changes below so fruit stays at 2 servings and the day stays at ~2,500 kcal.</p>
+  <table class="grid">
+    <tr><th style="width:13%">Time</th><th style="width:32%">Base day</th><th style="width:32%">Idli day</th><th>Change</th></tr>
+    <tr><td>09:00</td><td>2 medium bananas</td><td>3 medium idlis + 1 bowl sambar</td><td>~+90 kcal, ~+7 g protein</td></tr>
+    <tr><td>12:00</td><td>Muesli 40 g + milk 150 ml</td><td>1 banana + milk 150 ml</td><td>~-50 kcal</td></tr>
+    <tr><td>Any time</td><td>-</td><td>1 orange, guava or apple</td><td>~+60-80 kcal</td></tr>
+    <tr><td>19:00-20:00</td><td>Cooked rice 180 g</td><td>Cooked rice 120 g</td><td>~-80 kcal</td></tr>
+    <tr><td class="k" colspan="3">Net result</td><td class="k">About the same kcal and protein, 2 fruit servings</td></tr>
+  </table>
+  <ul>
+    <li>Chutney is extra. Measure it and log it. If you use more than 1 tbsp of coconut or peanut chutney, take another 30 g of cooked rice off dinner.</li>
+    <li>Do not judge the swap by whether the food is "clean". Judge it by total calories, protein, digestion and gym performance.</li>
+  </ul>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>3</b></span></div>
+</div>
+
+<!-- PAGE 4 -->
+<div class="page">
+  <div class="band"><h1>FOOD-SCALE RULES</h1><p>Precision only works if you measure the same way every time.</p></div>
+  <table class="grid">
+    <tr><th style="width:20%">Food</th><th style="width:26%">How YOU will log it</th><th>Rule</th></tr>
+    <tr><td class="k">Chicken breast</td><td>Raw grams</td><td>Weigh before cooking; keep this consistent.</td></tr>
+    <tr><td class="k">Rice</td><td>Cooked grams</td><td>Use the same cooked-weight method daily. Do not mix raw-rice entries with cooked weights.</td></tr>
+    <tr><td class="k">Oats / muesli</td><td>Dry grams</td><td>Weigh before soaking or adding milk.</td></tr>
+    <tr><td class="k">Milk</td><td>Millilitres</td><td>Use package nutrition per 100 ml.</td></tr>
+    <tr><td class="k">Curd</td><td>Grams</td><td>Use the exact brand/type entry, especially if fat content changes. See the lactose check below.</td></tr>
+    <tr><td class="k">Seeds</td><td>Grams</td><td>15 g TOTAL daily is the starting cap, not 1 tbsp of each.</td></tr>
+    <tr><td class="k">Oil / ghee</td><td>Grams or measured sprays</td><td>"A little" can become a hidden 100+ kcal. Measure at least while learning.</td></tr>
+    <tr><td class="k">Eggs</td><td>Count + size</td><td>4 whole eggs is fine; log the actual egg size/label when possible.</td></tr>
+    <tr><td class="k">Chutney</td><td>Grams / tbsp measured</td><td>Especially important for coconut, peanut or oily chutneys.</td></tr>
+    <tr><td class="k">Whey</td><td>Scoops + label</td><td>Use your Fuel One label; do not copy a random database entry.</td></tr>
+  </table>
+  <table class="callout red"><tr>
+    <td class="label">HARDCORE RULE</td>
+    <td class="text">For the first 30 days, weigh the foods that are easiest to underestimate: rice, muesli, seeds, oil, chutney and curd. This trains your eye.</td>
+  </tr></table>
+  <h2>Meal-prep shortcut</h2>
+  <ol style="margin:4px 0 6px 0; padding-left:18px;">
+    <li>Pre-portion chicken into 300 g raw packs for 3-4 days.</li>
+    <li>Cook a rice batch and weigh the final cooked rice into 220 g lunch and 180 g dinner boxes.</li>
+    <li>Wash/chop 2-3 days of vegetables at once. Aim for at least two colors per day.</li>
+    <li>Pre-mix a seed jar with equal parts chia, pumpkin and sunflower seed. Weigh 15 g total each morning.</li>
+    <li>Keep curd/milk in the fridge and log from the package, not memory.</li>
+  </ol>
+  <table class="callout"><tr>
+    <td class="label">LACTOSE CHECK <span style="font-weight:normal">(NEW)</span></td>
+    <td class="text">You use lactose-free milk, but 350 g of regular curd a day has ~10-14 g lactose - about one large glass of milk. <span class="n">Curd is usually easier to digest than milk. If curd gives you gas or bloating, split it across more meals or swap part of it for a lactose-free option. Whey concentrate also contains some lactose.</span></td>
+  </tr></table>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>4</b></span></div>
+</div>
+
+<!-- PAGE 5 -->
+<div class="page">
+  <div class="band"><h1>VEGETABLE UPGRADE</h1><p>Fiber powder can support intake, but it does not replace micronutrient and food variety.</p></div>
+  <table class="grid">
+    <tr><th style="width:24%">Target</th><th>Easy execution</th></tr>
+    <tr><td class="k">Lunch 300 g</td><td>150 g cucumber/tomato/carrot + 150 g cooked beans/capsicum/broccoli/cauliflower/spinach</td></tr>
+    <tr><td class="k">Dinner 200 g</td><td>A cooked mixed-veg side, stir-fry, spinach, beans, gourds, carrots or salad</td></tr>
+    <tr><td class="k">Weekly variety target</td><td>Try to rotate 6-8 different vegetables across the week rather than eating one "perfect" vegetable daily.</td></tr>
+  </table>
+
+  <h2>Fiber ramp <span class="tag">NEW</span></h2>
+  <p class="body">Your vegetables start "very low". The base day also adds oats, seeds and isabgol. A sudden jump in fiber often causes gas and bloating, so build up.</p>
+  <table class="grid">
+    <tr><th style="width:24%">Week</th><th style="width:28%">Vegetables per day</th><th>How</th></tr>
+    <tr><td class="k">Week 1</td><td>~150-200 g</td><td>Lunch vegetables only. Keep isabgol at 5 g with a full glass of water.</td></tr>
+    <tr><td class="k">Week 2</td><td>~300 g</td><td>Full lunch serving + a small dinner side.</td></tr>
+    <tr><td class="k">Week 3 onward</td><td>300-500 g</td><td>Full base day: 300 g lunch + 200 g dinner.</td></tr>
+  </table>
+  <p class="body">Week 1-2 calories run ~30-60 kcal under the base day. That is fine. Do not add other food to cover it.</p>
+
+  <h2>Fruit rotation</h2>
+  <table class="grid">
+    <tr><th style="width:30%">Use</th><th>Examples</th></tr>
+    <tr><td class="k">Pre-workout / easy carbs</td><td>Banana</td></tr>
+    <tr><td class="k">Higher-fiber rotation</td><td>Guava, apple, pear</td></tr>
+    <tr><td class="k">Hydrating / light</td><td>Orange, watermelon, papaya</td></tr>
+    <tr><td class="k">Any option</td><td>Use what is affordable and consistent; fruit is not a cheat food.</td></tr>
+  </table>
+
+  <h2>Hunger control</h2>
+  <ul>
+    <li>If hungry at night but protein is already on target, add low-calorie volume first: vegetables, fruit, plain curd or a measured starchy food rather than automatically adding another whey scoop.</li>
+    <li>If hunger and low energy are persistent for several days AND bodyweight is dropping faster than target, the fix is more calories - not more discipline.</li>
+    <li>Keep highly palatable snack foods out of the default environment during the cut, but no food is morally "bad". Track it if you choose it.</li>
+  </ul>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>5</b></span></div>
+</div>
+
+<!-- PAGE 6 -->
+<div class="page">
+  <div class="band"><h1>ADJUSTMENT ALGORITHM</h1><p>This page matters more than the original calorie number.</p></div>
+  <h2 style="margin-top:4px">Measurement protocol</h2>
+  <table class="grid">
+    <tr><th style="width:26%">Measure</th><th style="width:22%">Frequency</th><th>Method</th></tr>
+    <tr><td class="k">Bodyweight</td><td>Daily</td><td>Morning, after bathroom, before food/drink, same scale/location. Use 7-day average.</td></tr>
+    <tr><td class="k">Waist</td><td>Weekly</td><td>At navel, relaxed, after normal exhale, same time/conditions.</td></tr>
+    <tr><td class="k">Photos</td><td>Every 4 weeks</td><td>Front / side / back; same lighting, camera distance and posture.</td></tr>
+    <tr><td class="k">Gym performance</td><td>Every session</td><td>Log every work-set load, reps and RIR.</td></tr>
+  </table>
+
+  <h2>Every 14 days, make ONE decision <span class="tag">UPDATED</span></h2>
+  <p class="body">Check the rows from top to bottom. Use the <b>first</b> row that matches. The 0.2-0.6 kg/week "keep" band is wider than the 0.25-0.5 target on purpose, so normal noise does not cause a change.</p>
+  <table class="grid">
+    <tr><th style="width:5%">#</th><th style="width:45%">What the data says</th><th>Action</th></tr>
+    <tr><td>1</td><td class="k">One random high weigh-in after salty meal / poor sleep</td><td>DO NOTHING. Never adjust from one day.</td></tr>
+    <tr class="new"><td>2</td><td class="k">You are in the first 4 weeks of creatine</td><td>Do NOT remove calories because of the scale. Creatine adds ~1-2 kg of water. Decide from waist, photos and lifts only.</td></tr>
+    <tr><td>3</td><td class="k">Gym performance/energy clearly falling for 2 weeks (at any rate of loss)</td><td>ADD ~150 kcal/day, mostly carbs around training.</td></tr>
+    <tr><td>4</td><td class="k">Down &gt;0.6 kg/week for 2 weeks</td><td>ADD ~150 kcal/day, mostly carbs around training.</td></tr>
+    <tr class="new"><td>5</td><td class="k">Down &lt;0.2 kg/week for 2 weeks AND waist not decreasing</td><td>REMOVE ~150 kcal/day OR add ~3,000 average daily steps. Pick one, not both. <i>(1,000-1,500 steps burn only ~40-80 kcal at your size.)</i></td></tr>
+    <tr><td>6</td><td class="k">Down &lt;0.2 kg/week but waist decreasing</td><td>KEEP calories. Recomposition can hide scale change.</td></tr>
+    <tr class="new"><td>7</td><td class="k">Anything else (including 0.2-0.6 kg/week with strength stable)</td><td>KEEP current calories. Do nothing. Check again in 14 days.</td></tr>
+  </table>
+  <table class="callout red"><tr>
+    <td class="label">FLOOR RULE</td>
+    <td class="text">Do not automatically cut below ~2,200 kcal from this plan without reassessing performance, hunger, adherence and your new bodyweight.</td>
+  </tr></table>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>6</b></span></div>
+</div>
+
+<!-- PAGE 7 -->
+<div class="page">
+  <div class="band"><h1>TRAINING-DAY NUTRITION + HYDRATION</h1><p>Fuel performance without turning supplements into the plan.</p></div>
+  <h2 style="margin-top:4px">Before training</h2>
+  <ul>
+    <li>Your 12:00 muesli + milk is a reasonable pre-workout meal if it digests comfortably before the 1 PM gym session.</li>
+    <li>If you feel heavy, shift it earlier or reduce fiber/fat in the final hour before lifting. Do not add extra food just because it is "pre-workout".</li>
+    <li>Normal hydration through the morning is enough for most gym sessions.</li>
+  </ul>
+  <h2>ORS / electrolytes</h2>
+  <ul>
+    <li>Do not make ORS an automatic 1 PM ritual for a normal indoor lifting session.</li>
+    <li>It is more useful when sweat losses are clearly high: long badminton, very hot conditions, prolonged exercise, illness-related fluid loss, or when medically advised.</li>
+    <li>For normal days, water plus ordinary meals is the default.</li>
+  </ul>
+  <h2>Post-workout</h2>
+  <ul>
+    <li>You do not need a 30-minute anabolic-window panic. Your normal lunch after training is already protein- and carbohydrate-rich.</li>
+    <li>Keep the chicken/rice/curd/vegetable meal because it is easy for you to repeat. Consistency beats novelty.</li>
+  </ul>
+  <h2>Badminton days + rest days <span class="tag">NEW</span></h2>
+  <table class="grid">
+    <tr><th style="width:30%">Day type</th><th>Rule</th></tr>
+    <tr><td class="k">Normal badminton (under ~90 min)</td><td>Same calories as the base day. Your usual badminton is already part of the 2,500 kcal estimate. If play is far from a meal, eat a banana from the day's plan before you play.</td></tr>
+    <tr><td class="k">Long or extra badminton (90+ min, or more than your usual week)</td><td>ADD ~150-200 kcal of carbs that day, for example 1 banana + 50 g cooked rice. Log it. Use ORS/electrolytes if you sweat heavily or it is hot.</td></tr>
+    <tr><td class="k">Gym rest day</td><td>Same base day. Same calories every day keeps the plan simple. The 7-day average does the rest.</td></tr>
+  </table>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>7</b></span></div>
+</div>
+
+<!-- PAGE 8 -->
+<div class="page">
+  <div class="band"><h1>SUPPLEMENTS</h1><p>Keep the useful, remove the risky or unnecessary.</p></div>
+  <table class="grid">
+    <tr><th style="width:20%">Supplement</th><th style="width:22%">Status</th><th>Rule</th></tr>
+    <tr><td class="k">Whey protein</td><td>KEEP</td><td>Use to hit the protein target. It is convenience, not a separate category of nutrition.</td></tr>
+    <tr class="new"><td class="k">Creatine monohydrate</td><td>ADD / OPTIONAL</td><td>3-5 g daily is a well-studied maintenance approach. Timing is not important; daily consistency is. <b>Expect ~1-2 kg of water weight in the first 2-4 weeks. This is not fat. Use rule #2 on page 6 during those weeks.</b></td></tr>
+    <tr><td class="k">Fish oil</td><td>CONDITIONAL</td><td>Reasonable if fatty-fish intake is low. Avoid megadosing; check EPA+DHA on the label and discuss with a clinician if you use blood-thinning medication or have bleeding concerns.</td></tr>
+    <tr><td class="k">Zinc 50 mg</td><td>CHECK / DO NOT ROUTINELY MEGADOSE</td><td>If the tablet contains 50 mg ELEMENTAL zinc, that exceeds the adult UL of 40 mg/day from all sources. Long-term high zinc can also cause copper deficiency. Do not take it nightly long-term without clinician guidance.</td></tr>
+    <tr><td class="k">Magnesium</td><td>CHECK LABEL</td><td>Look at ELEMENTAL magnesium. NIH lists 350 mg/day as the adult UL from supplements/medications (food magnesium is not included in that UL). Higher supplemental doses commonly cause GI effects and may need medical guidance.</td></tr>
+    <tr><td class="k">Vitamin B12</td><td>CONDITIONAL</td><td>Useful when intake/status warrants it; not required simply because you lift. Your eggs, chicken and dairy already supply B12. If you were prescribed it or have low B12, follow clinician guidance.</td></tr>
+    <tr class="new"><td class="k">Isabgol / psyllium</td><td>OK IF TOLERATED</td><td>Count it as supplemental fiber and do not let it replace vegetables/fruit. Take it with at least one full glass (~250 ml) of water. Keep ~2 hours between isabgol and any medicine.</td></tr>
+  </table>
+  <table class="callout"><tr>
+    <td class="label">LABEL CHECK</td>
+    <td class="text">Send the exact zinc and magnesium labels before we lock their doses. The number on the front of the bottle is not always the elemental dose.</td>
+  </tr></table>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>8</b></span></div>
+</div>
+
+<!-- PAGE 9 -->
+<div class="page">
+  <div class="band"><h1>12-WEEK TARGET BOARD</h1><p>Your goal is a better physique, not simply a lighter number.</p></div>
+  <table class="grid">
+    <tr><th style="width:18%">Metric</th><th style="width:20%">Start</th><th style="width:30%">12-week direction</th><th>What success looks like</th></tr>
+    <tr><td class="k">Scale</td><td>83 kg</td><td>~79-80 kg checkpoint if loss stays controlled</td><td>No forced deadline; reassess visually.</td></tr>
+    <tr><td class="k">Waist</td><td>Measure now</td><td>Clear downward trend</td><td>Same measurement method weekly.</td></tr>
+    <tr><td class="k">Strength</td><td>Mostly stable</td><td>Stable or modestly improving</td><td>Maintaining strength while cutting is a win.</td></tr>
+    <tr><td class="k">Steps</td><td>~7k</td><td>8-10k average</td><td>Built gradually; no punishment cardio.</td></tr>
+    <tr><td class="k">Vegetables</td><td>Very low</td><td>300-500 g/day by week 3</td><td>2+ servings, varied colors.</td></tr>
+    <tr><td class="k">Protein</td><td>Already high</td><td>175 g minimum, measured</td><td>Consistent rather than excessive.</td></tr>
+    <tr class="new"><td class="k">Sleep</td><td>Measure now</td><td>7-8 h/night</td><td>Lights out ~21:30-22:00 for a 05:30 start.</td></tr>
+    <tr class="new"><td class="k">Adherence</td><td>Strong</td><td>~85-90%+ of days on target, weekends included</td><td>A few imperfect meals do not break the plan.</td></tr>
+  </table>
+  <h2>When Phase 1 ends</h2>
+  <ul>
+    <li>Stop the cut when the waist/visual look is lean enough that your next best move is building, not when a body-fat calculator gives a magic number.</li>
+    <li>Hold maintenance for roughly 2-4 weeks while training performance stabilizes.</li>
+    <li>Then move into a long, controlled lean-gain phase with a small surplus and the same measurement system.</li>
+  </ul>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>9</b></span></div>
+</div>
+
+<!-- PAGE 10 -->
+<div class="page">
+  <div class="band"><h1>WEEKLY COMPLIANCE SHEET</h1><p>Print this page or copy the fields into your notes app.</p></div>
+  <table class="sheet">
+    <tr><th>Week</th><th>Avg kcal</th><th>Avg protein</th><th>7-day avg kg</th><th>Waist</th><th>Avg steps</th><th>Avg sleep</th><th>Veg target days</th><th>Training days</th><th>Notes</th></tr>
+    <tr><td>1</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>2</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>3</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>4</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>5</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>6</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>7</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>9</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>10</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>11</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>12</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  </table>
+  <p class="body" style="margin-top:8px">Creatine start date (if used): ____________ &nbsp;&nbsp; Rule #2 on page 6 applies until: ____________</p>
+  <h2>Daily wins</h2>
+  <ul class="checks">
+    <li>Calories approximately on target</li>
+    <li>Protein &gt;= 175 g</li>
+    <li>Vegetables &gt;= 300 g (after the week 1-2 ramp)</li>
+    <li>Fruit &gt;= 2 servings</li>
+    <li>Steps moving toward 8-10k</li>
+    <li>Workout logged if scheduled</li>
+    <li>Sleep 7-8 h</li>
+  </ul>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>10</b></span></div>
+</div>
+
+<!-- PAGE 11 -->
+<div class="page">
+  <div class="band"><h1>EVIDENCE + SAFETY NOTES</h1><p>Targets are individualized from your observed progress; supplement limits and training principles use external guidance.</p></div>
+  <ul class="refs">
+    <li>Jager R et al. International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20. (1.4-2.0 g/kg/day is a broad evidence-based range for exercising people, with higher needs possible during energy restriction.)</li>
+    <li>Morton RW et al. A systematic review, meta-analysis and meta-regression of protein supplementation in resistance training. Br J Sports Med. 2018. PMID: 28698222. (Gains in fat-free mass plateaued at ~1.6 g/kg/day, upper confidence limit ~2.2 g/kg/day. 175 g is ~2.1 g/kg for you, so more is not needed.)</li>
+    <li>Antonio J et al. Common questions and misconceptions about creatine supplementation. J Int Soc Sports Nutr. 2021. (3-5 g/day is an effective daily maintenance strategy. Creatine can increase body water in the short term, which shows up on the scale.)</li>
+    <li>NIH Office of Dietary Supplements. Zinc - Health Professional Fact Sheet. Adult tolerable upper intake level: 40 mg/day from all sources unless medically supervised.</li>
+    <li>NIH Office of Dietary Supplements. Magnesium - Health Professional Fact Sheet. Adult UL from supplements/medications: 350 mg/day; food magnesium is excluded from this UL.</li>
+    <li>Step energy estimate: walking costs roughly 0.5 kcal per kg per km above rest. At 83 kg and ~1,300 steps/km, 3,000 extra steps is ~100-150 kcal.</li>
+  </ul>
+  <table class="callout red"><tr>
+    <td class="label">HEALTH NOTE</td>
+    <td class="text">This is a fitness/nutrition plan for a generally healthy adult, not medical treatment. If you have kidney, liver, cardiovascular, gastrointestinal or metabolic disease, take prescription medication, or develop concerning symptoms, have a clinician review the plan and supplements.</td>
+  </tr></table>
+  <div class="footer">JIN-WOO NUTRITION &nbsp;|&nbsp; personalized plan<span class="pg">PAGE <b>11</b></span></div>
+</div>
+
+</body>
+</html>
