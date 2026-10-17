@@ -377,6 +377,7 @@ input.wk-info { width: 100%; min-height: 44px; padding: 0 12px; border-radius: 1
 
 /* ---------- Ranks ---------- */
 .rank-hero { text-align: center; padding: 24px 18px; }
+.rank-hero .ring { margin: 0 auto; }
 .rank-hero h2 { font-size: 1.6rem; margin-top: 12px; }
 .ladder { list-style: none; margin: 0; padding: 4px 18px; background: var(--card); border-radius: var(--r); }
 .rung { display: grid; grid-template-columns: 48px 1fr auto; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
