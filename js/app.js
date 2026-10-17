@@ -847,15 +847,15 @@ function saveCheckin(form) {
   const db = Store.db;
   const f = new FormData(form);
   const week = Logic.weekStart(f.get("week") + "T12:00:00");
+  const i = db.checkins.findIndex((x) => x.week === week);
   const c = {
-    id: Store.uid(),
+    id: i >= 0 ? db.checkins[i].id : Store.uid(),
     week,
     weight: f.get("weight"), waist: f.get("waist"), kcal: f.get("kcal"), protein: f.get("protein"),
     steps: f.get("steps"), sleep: f.get("sleep"),
     creatine: f.get("creatine") === "on", perfDown: f.get("perfDown") === "on",
     notes: f.get("notes") || "",
   };
-  const i = db.checkins.findIndex((x) => x.week === week);
   if (i >= 0) {
     if (!confirm(`A check-in for the week of ${fmtWeek(week)} already exists. Replace it?`)) return;
     db.checkins[i] = c;

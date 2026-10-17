@@ -274,6 +274,14 @@ const Store = (() => {
       if (local && Date.parse(local) === Date.parse(row.stamp)) {
         delete meta.dirty[kind][row.id];
         delete meta.tombs[kind][row.id];
+        // Same version: take the server's form ("84.0" comes back as "84") so every device holds identical data.
+        const j = !row.deleted && JSON.stringify(row.record);
+        const i = j ? db[kind].findIndex((r) => r.id === row.id) : -1;
+        if (i >= 0 && shadow[kind].get(row.id) !== j) {
+          db[kind][i] = row.record;
+          shadow[kind].set(row.id, j);
+          changed = true;
+        }
         return;
       }
       if (meta.dirty[kind][row.id] && local && Date.parse(local) > Date.parse(row.stamp)) return;
@@ -295,8 +303,32 @@ const Store = (() => {
         changed = true;
       }
     });
+    if (kind === "checkins" && dedupeWeeks()) changed = true;
     persist();
     return changed;
+  }
+
+  /* Two devices can each create a check-in for the same week offline. Every device keeps the same one
+     (newest stamp, then highest id) and deletes the other, so they converge. */
+  function dedupeWeeks() {
+    const keep = new Map();
+    const newer = (a, b) => {
+      const sa = Date.parse(meta.stamps.checkins[a.id] || 0), sb = Date.parse(meta.stamps.checkins[b.id] || 0);
+      return sa !== sb ? sa > sb : a.id > b.id;
+    };
+    db.checkins.forEach((c) => {
+      const k = keep.get(c.week);
+      if (!k || newer(c, k)) keep.set(c.week, c);
+    });
+    const losers = db.checkins.filter((c) => keep.get(c.week) !== c);
+    losers.forEach((c) => {
+      shadow.checkins.delete(c.id);
+      meta.tombs.checkins[c.id] = stamp(meta.stamps.checkins[c.id]);
+      delete meta.stamps.checkins[c.id];
+      meta.dirty.checkins[c.id] = 1;
+    });
+    if (losers.length) db.checkins = db.checkins.filter((c) => keep.get(c.week) === c);
+    return losers.length > 0;
   }
 
   /* Same rule, per field of the user_state blob. row: { draft, swaps, settings, stamps: { draft, swaps, settings } } */
