@@ -250,7 +250,7 @@ const Account = (() => {
   async function signOut() {
     if (navigator.onLine) await Sync.syncNow();
     const n = Store.pendingCount();
-    if (n && !confirm(`${n} change${n > 1 ? "s have" : " has"} not uploaded yet. ${n > 1 ? "They stay" : "It stays"} on this device and ${n > 1 ? "upload" : "uploads"} the next time you sign in here. Sign out anyway?`)) return;
+    if (n && !(await UI.ask({ title: "Sign out?", text: `${n} change${n > 1 ? "s haven't" : " hasn't"} uploaded yet. ${n > 1 ? "They stay" : "It stays"} on this device and ${n > 1 ? "upload" : "uploads"} the next time you sign in here.`, ok: "Sign out" }))) return;
     await Sync.signOut();
     mode = "signin";
     msg = null;
@@ -271,7 +271,7 @@ const Account = (() => {
         return render();
       }
       if (ds.acctUnlink) {
-        if (!confirm("Unlink this PT? They lose access to your log.")) return;
+        if (!(await UI.ask({ title: "Unlink this PT?", text: "They lose access to your log.", ok: "Unlink", danger: true }))) return;
         await Sync.unlinkCoach(ds.acctUnlink);
         coaches = { uid: null, list: null, error: "" };
         return render();

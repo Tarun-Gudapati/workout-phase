@@ -431,6 +431,12 @@ input.wk-info { width: 100%; min-height: 44px; padding: 0 12px; border-radius: 1
 .sheet { width: min(640px, 100%); max-height: 86vh; overflow: auto; background: var(--card); border: 1px solid var(--line2); border-bottom: 0; border-radius: 26px 26px 0 0; padding: 22px 18px calc(18px + env(safe-area-inset-bottom)); animation: sheet 0.4s var(--ease); }
 @keyframes sheet { from { transform: translateY(100%); } }
 .sheet h3 { font-size: 1.4rem; margin-bottom: 4px; }
+.dlg { z-index: 70; animation: fade 0.2s ease; }
+@keyframes fade { from { opacity: 0; } }
+.dlg .sheet { animation-duration: 0.28s; }
+.dlg .sheet p { line-height: 1.5; }
+.dlg-actions { margin-top: 14px; }
+.dlg-actions .btn.full { min-height: 52px; }
 .opt { display: flex; align-items: center; gap: 14px; width: 100%; padding: 10px; margin-top: 8px; border-radius: 16px; border: 0; background: var(--card2); text-align: left; cursor: pointer; }
 .opt .thumb { flex-basis: 52px; width: 52px; height: 52px; }
 
