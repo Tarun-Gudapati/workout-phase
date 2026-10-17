@@ -629,12 +629,10 @@ function closeModal() {
 function updateRest() {
   const d = Store.db.draft;
   const onLog = location.hash.startsWith("#/log");
-  if (!d || !d.restAt || !onLog) {
-    restBar.classList.add("hidden");
-    return;
-  }
-  const secs = Math.floor((Date.now() - d.restAt) / 1000);
-  if (secs > 600) {
+  const secs = d && d.restAt ? Math.floor((Date.now() - d.restAt) / 1000) : 0;
+  const show = !!(d && d.restAt && onLog && secs <= 600);
+  document.body.classList.toggle("resting", show);
+  if (!show) {
     restBar.classList.add("hidden");
     return;
   }
