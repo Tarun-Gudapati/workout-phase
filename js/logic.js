@@ -31,9 +31,9 @@ const Logic = (() => {
   const fmtSet = (s) => (num(s.kg) > 0 ? `${fmtKg(num(s.kg))}×${num(s.reps)}` : `BW×${num(s.reps)}`);
   const fmtSets = (entry) => workSets(entry).map(fmtSet).join(", ");
 
-  /* Most recent finished entry for this exercise, logged before `beforeIso`, ignoring session `excludeId`. */
-  function previousEntry(exId, beforeIso, excludeId) {
-    const list = Store.finishedSessions();
+  /* Most recent finished entry for this exercise, logged before `beforeIso`, ignoring session `excludeId`.
+     `list` is a date-sorted list of finished sessions (another athlete's in the coach view). */
+  function previousEntry(exId, beforeIso, excludeId, list = Store.finishedSessions()) {
     for (let i = list.length - 1; i >= 0; i--) {
       const s = list[i];
       if (s.id === excludeId) continue;
@@ -44,8 +44,7 @@ const Logic = (() => {
     return null;
   }
 
-  function previousSessionOfDay(dayId, beforeIso, excludeId) {
-    const list = Store.finishedSessions();
+  function previousSessionOfDay(dayId, beforeIso, excludeId, list = Store.finishedSessions()) {
     for (let i = list.length - 1; i >= 0; i--) {
       const s = list[i];
       if (s.id !== excludeId && s.dayId === dayId && (!beforeIso || s.date < beforeIso)) return s;
@@ -132,9 +131,9 @@ const Logic = (() => {
     return ymd(d);
   }
 
-  function weekTotals(key) {
+  function weekTotals(key, list = Store.finishedSessions()) {
     const out = { sessions: 0, sets: 0, reps: 0, volume: 0, muscles: {} };
-    Store.finishedSessions().filter((s) => weekStart(s.date) === key).forEach((s) => {
+    list.filter((s) => weekStart(s.date) === key).forEach((s) => {
       out.sessions++;
       s.entries.forEach((e) => {
         const st = entryStats(e);
