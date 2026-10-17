@@ -159,11 +159,12 @@ function route() {
 const rerender = () => paint(true);
 window.addEventListener("hashchange", route);
 
+let topHtml = null;
 function renderTopRight(view) {
   document.querySelector('.tabs a[data-tab="coach"]').classList.toggle("hidden", !Sync.isCoach);
-  const el = document.getElementById("top-right");
   const d = Store.db.draft;
-  el.innerHTML = (d && view !== "log" ? `<a class="pill live" href="#/log">${esc(PROGRAM.days[d.dayId].name)} live</a>` : "") + Account.pill();
+  const html = (d && view !== "log" ? `<a class="pill live" href="#/log">${esc(PROGRAM.days[d.dayId].name)} live</a>` : "") + Account.pill();
+  if (html !== topHtml) document.getElementById("top-right").innerHTML = topHtml = html;
 }
 
 /* ---------- Train ---------- */
@@ -1017,8 +1018,7 @@ app.addEventListener("click", (ev) => {
     case "export": return exportBackup();
     case "import": return document.getElementById("import-file").click();
     case "reset":
-      const where = Store.account ? "in your account, on every device" : "on this device";
-      if (confirm(`Delete ALL workouts and check-ins ${where}? Export a backup first if you want to keep them.`) && confirm("Are you sure? This cannot be undone.")) {
+      if (confirm(`Delete ALL workouts and check-ins ${Store.account ? "in your account, on every device" : "on this device"}? Export a backup first if you want to keep them.`) && confirm("Are you sure? This cannot be undone.")) {
         Store.reset();
         route();
       }
