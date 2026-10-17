@@ -1177,7 +1177,7 @@ function renderPlan(tab) {
       <p class="small">Upper / lower + push / pull / legs. Each muscle gets about 2 sessions a week. Move the days to fit badminton. Do not put Legs the day before a long badminton session.</p>
       ${label("My week", "pick a workout or rest")}
       ${weekEditor()}
-      ${label("Workout feedback", "this phone")}
+      ${label("Workout feedback", "vibration and sound")}
       ${feedbackPrefs()}
       <p class="small muted">When every set reaches the top of the rep range, add the smallest weight jump next time. The app calculates this for you.</p>
       ${PROGRAM.order.map((id, n) => {
