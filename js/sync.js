@@ -24,6 +24,7 @@ const Sync = (() => {
   let again = false;
   let offeredLocal = false;
   let profileFresh = false;
+  let waiters = [];
   const handlers = {};
 
   const on = (ev, fn) => (handlers[ev] = handlers[ev] || []).push(fn);
@@ -160,11 +161,20 @@ const Sync = (() => {
     return false;
   }
 
+  function settle() {
+    const w = waiters;
+    waiters = [];
+    w.forEach((fn) => fn());
+  }
+
   async function run() {
     timer = null;
-    if (!enabled || !Store.account) return;
     if (running) return void (again = true);
-    if (!navigator.onLine) return setState("offline");
+    if (!enabled || !Store.account) return settle();
+    if (!navigator.onLine) {
+      setState("offline");
+      return settle();
+    }
     running = true;
     let ok = false;
     try {
@@ -196,10 +206,10 @@ const Sync = (() => {
       timer = setTimeout(run, wait);
     } finally {
       running = false;
-      if (again) {
-        again = false;
-        if (ok) schedule(0);
-      }
+      const follow = again && ok;
+      again = false;
+      if (follow) schedule(0);
+      else settle();
     }
   }
 
@@ -213,9 +223,14 @@ const Sync = (() => {
     emit("status");
   }
 
-  async function syncNow() {
-    schedule(0, true);
-    for (let i = 0; i < 100 && (timer || running); i++) await new Promise((r) => setTimeout(r, 100));
+  /* Resolves when the forced run (and any follow-up for edits made meanwhile) is done, even if it failed. */
+  function syncNow() {
+    if (!enabled || !Store.account) return Promise.resolve();
+    return new Promise((resolve) => {
+      waiters.push(resolve);
+      setTimeout(resolve, 15000);
+      schedule(0, true);
+    });
   }
 
   function offerLocal() {
@@ -286,8 +301,14 @@ const Sync = (() => {
     // Supabase warns against awaiting its own calls inside this callback.
     client.auth.onAuthStateChange((event, session) => setTimeout(() => onAuth(event, session), 0));
     Store.onSave(() => schedule(2000));
-    window.addEventListener("online", () => schedule(0, true));
-    window.addEventListener("offline", () => setState("offline"));
+    window.addEventListener("online", () => {
+      client.auth.startAutoRefresh();
+      schedule(0, true);
+    });
+    window.addEventListener("offline", () => {
+      client.auth.stopAutoRefresh();
+      setState("offline");
+    });
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") schedule(0);
     });
