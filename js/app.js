@@ -1345,6 +1345,7 @@ Sync.on("account", route);
 Sync.on("profile", () => (isTyping() ? renderTopRight(currentView()) : paint(true)));
 Sync.on("migrate", Account.offerLocal);
 Sync.on("recovery", Account.recover);
+Account.readLinkError();
 Sync.start();
 
 if (!location.hash && Account.wantsAuth()) history.replaceState(null, "", "#/account");

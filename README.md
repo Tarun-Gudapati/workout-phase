@@ -18,9 +18,9 @@ with Log → Export / Import backup. Filling in `js/config.js` adds accounts, sy
    - Authentication → Sign In / Providers → **Email**: enabled. "Confirm email" can stay on.
    - Authentication → URL Configuration → **Site URL**: `https://<your-app>.vercel.app`.
      **Redirect URLs**: `https://<your-app>.vercel.app/**` and `http://localhost:8080/**`.
-   - Authentication → Emails → Templates: in **Confirm signup** and **Reset password** add
-     `<p>Your code: {{ .Token }}</p>`. The app asks for this code, so sign-up and password reset work inside
-     the installed iPhone app (email links open in Safari, which has separate storage).
+   - The default email templates are fine. Sign-up and password reset use the email link, which works in any
+     browser. If the link opens outside the installed app (for example in Safari on iPhone), the user signs in
+     with their password in the app afterwards.
    - Supabase's built-in email sender allows only a few emails per hour. Before inviting several people, add
      your own SMTP server (Authentication → Emails → SMTP Settings).
 4. **Connect the app.** Project Settings → API Keys / Data API: copy the **Project URL** and the **anon

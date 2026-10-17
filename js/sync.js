@@ -295,7 +295,9 @@ const Sync = (() => {
   function start() {
     if (!enabled) return;
     client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" },
+      /* Implicit, not PKCE: a PKCE email link only works in the browser that started sign-up.
+         The free-tier email templates cannot include a code, so the link has to work anywhere. */
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "implicit" },
     });
     if (Store.account) profile = cachedProfile(Store.account);
     // Supabase warns against awaiting its own calls inside this callback.
@@ -330,7 +332,6 @@ const Sync = (() => {
   }
 
   const signIn = async (email, password) => fail(await auth().signInWithPassword({ email, password }));
-  const verifyCode = async (email, token, type) => fail(await auth().verifyOtp({ email, token: token.trim(), type }));
   const resendCode = async (email) => fail(await auth().resend({ type: "signup", email, options: { emailRedirectTo: redirectUrl() } }));
   const sendReset = async (email) => fail(await auth().resetPasswordForEmail(email, { redirectTo: redirectUrl() }));
   const setPassword = async (password) => fail(await auth().updateUser({ password }));
@@ -421,7 +422,7 @@ const Sync = (() => {
     get user() { return user; },
     get profile() { return profile; },
     get isCoach() { return !!(profile && profile.role === "coach" && Store.account); },
-    signUp, signIn, verifyCode, resendCode, sendReset, setPassword, signOut, saveName, refreshProfile,
+    signUp, signIn, resendCode, sendReset, setPassword, signOut, saveName, refreshProfile,
     adoptLocal, declineLocal,
     joinCoach, myCoaches, unlinkCoach, myAthletes, removeAthlete, athletesOverview, athleteDetail,
   };

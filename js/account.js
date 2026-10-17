@@ -1,4 +1,4 @@
-/* Account screen: sign in / sign up / reset with email codes, sync status, coach linking. */
+/* Account screen: sign in / sign up / reset with email links, sync status, coach linking. */
 
 const Account = (() => {
   const LOCAL_OK = "jw.gym.local-only";
@@ -49,7 +49,6 @@ const Account = (() => {
 
   const field = (lbl, name, type, extra = "") => `<label class="wide">${lbl}<input type="${type}" name="${name}" ${extra}></label>`;
   const emailField = () => field("Email", "email", "email", `autocomplete="email" enterkeyhint="next" required value="${esc(email)}"`);
-  const codeField = () => field("Code from the email", "code", "text", `inputmode="numeric" autocomplete="one-time-code" enterkeyhint="next" pattern="[0-9 ]{6,10}" required`);
   const newPassField = (lbl = "New password · 8+ characters") => field(lbl, "password", "password", `autocomplete="new-password" enterkeyhint="go" minlength="8" required`);
   const submit = (text, cls = "acc") => `<button class="btn ${cls} big wide" type="submit">${text}</button>`;
 
@@ -58,14 +57,13 @@ const Account = (() => {
       case "signup":
         return `<form id="acct-signup" class="form">${field("Name", "name", "text", `autocomplete="name" required`)}${emailField()}${newPassField("Password · 8+ characters")}${submit("Create account")}</form>`;
       case "code":
-        return `<p class="small">Enter the code we emailed to <b>${esc(email)}</b>. The code works inside the installed app, even if the email link opens another browser.</p>
-          <form id="acct-code" class="form">${codeField()}${submit("Confirm email")}</form>
-          <button class="link" data-acct="resend">Send a new code</button>`;
+        return `<p class="small">We emailed a link to <b>${esc(email)}</b>. Open it to confirm your email and sign in. If it opens in another browser or on another device, come back here and sign in with your password.</p>
+          <button class="btn acc big wide" data-acct-mode="signin">I confirmed it, sign in</button>
+          <button class="link" data-acct="resend">Send a new email</button>`;
       case "reset":
-        return `<p class="small muted">We email you a code to set a new password.</p><form id="acct-reset" class="form">${emailField()}${submit("Send reset code")}</form>`;
-      case "resetcode":
-        return `<p class="small">Enter the code we emailed to <b>${esc(email)}</b> and choose a new password.</p>
-          <form id="acct-resetcode" class="form">${codeField()}${newPassField()}${submit("Set new password")}</form>`;
+        return `<p class="small muted">We email you a link to set a new password.</p><form id="acct-reset" class="form">${emailField()}${submit("Send reset link")}</form>`;
+      case "resetsent":
+        return `<p class="small">We emailed a link to <b>${esc(email)}</b>. Open it on this device to choose a new password.</p>`;
       default:
         return `<form id="acct-signin" class="form">${emailField()}${field("Password", "password", "password", `autocomplete="current-password" enterkeyhint="go" required`)}${submit("Sign in")}</form>
           <button class="link" data-acct-mode="reset">Forgot password?</button>`;
@@ -178,7 +176,7 @@ const Account = (() => {
         if (e.code === "email_not_confirmed") {
           mode = "code";
           await Sync.resendCode(email).catch(() => {});
-          msg = { text: "Confirm your email first. We sent a new code." };
+          msg = { text: "Confirm your email first. We sent a new link." };
           return render();
         }
         throw e;
@@ -190,24 +188,15 @@ const Account = (() => {
       const r = await Sync.signUp(email, v.password, v.name.trim());
       if (!r.needsCode) return done();
       mode = "code";
-      msg = { text: "Check your email for the code." };
+      msg = { text: "Check your email for the link." };
       render();
-    },
-    "acct-code": async (v) => {
-      await Sync.verifyCode(email, v.code.replace(/\s/g, ""), "email");
-      done();
     },
     "acct-reset": async (v) => {
       email = v.email.trim();
       await Sync.sendReset(email);
-      mode = "resetcode";
-      msg = { text: "Code sent. It can take a minute to arrive." };
+      mode = "resetsent";
+      msg = { text: "Email sent. It can take a minute to arrive." };
       render();
-    },
-    "acct-resetcode": async (v) => {
-      await Sync.verifyCode(email, v.code.replace(/\s/g, ""), "recovery");
-      await Sync.setPassword(v.password);
-      done();
     },
     "acct-pass": async (v, form) => {
       await Sync.setPassword(v.password);
@@ -289,7 +278,7 @@ const Account = (() => {
           return await signOut();
         case "resend":
           await Sync.resendCode(email);
-          return say("New code sent.");
+          return say("New email sent.");
         case "copy":
           await navigator.clipboard.writeText(Sync.profile.coach_code);
           return say("Code copied.");
@@ -327,8 +316,23 @@ const Account = (() => {
     rerender();
   });
 
+  /* A failed email link comes back as ?error=…&error_code=… (or #error=… in the implicit flow). */
+  function readLinkError() {
+    const q = new URLSearchParams(location.search);
+    const p = q.has("error") ? q : location.hash.startsWith("#error") ? new URLSearchParams(location.hash.slice(1)) : null;
+    if (!p) return;
+    mode = "signin";
+    msg = {
+      bad: true,
+      text: p.get("error_code") === "otp_expired"
+        ? "That email link expired or was already used. Sign in with your password. If your email is not confirmed yet, we send a new email. Use only the newest one."
+        : p.get("error_description") || "That email link did not work. Sign in to try again.",
+    };
+    history.replaceState(null, "", location.pathname + "#/account");
+  }
+
   return {
-    render, pill, refreshStatus, offerLocal, wantsAuth,
+    render, pill, refreshStatus, offerLocal, wantsAuth, readLinkError,
     recover() {
       recovery = true;
       location.hash = "#/account";
