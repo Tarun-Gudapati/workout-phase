@@ -219,7 +219,7 @@ function trainHero(plan, lastOf) {
   if (!d) {
     const note = restNote(t.key);
     const trained = plan.trainedToday.map((s) => PROGRAM.days[s.dayId] ? PROGRAM.days[s.dayId].name : "Workout");
-    return `<section class="hero rest">
+    return `<section class="hero rest-day">
       ${meta(note ? " · " + esc(note) : "")}
       <h1 class="display kinetic">Rest</h1>
       <p class="lede split"><b>${split("Recovery day.")}</b> ${split("Muscles grow while you rest. Walk, stretch, eat your protein and sleep 7-8 hours.")}</p>
@@ -227,7 +227,7 @@ function trainHero(plan, lastOf) {
       <details class="anyway"><summary class="btn full">Train anyway</summary>
         <div class="anyway-list">${PROGRAM.order.map((id) => `<button class="btn" data-start="${id}">${esc(PROGRAM.days[id].name)}</button>`).join("")}</div>
       </details>
-    </section>${nextUp(plan.tomorrow)}`;
+    </section>`;
   }
   if (plan.doneToday) {
     const st = Logic.sessionStats(plan.doneToday);
@@ -236,7 +236,7 @@ function trainHero(plan, lastOf) {
       <h1 class="display kinetic${d.name.length > 5 ? " long" : ""}"><span class="outline">${esc(d.name)}</span></h1>
       <p class="lede"><b>Quest cleared.</b> ${st.sets} sets, ${fmtInt(st.volume)} kg. Eat, rest and sleep well.</p>
       <a class="cta ghost" href="#/summary/${plan.doneToday.id}"><span>See summary</span><span class="arrow">↗</span></a>
-    </section>${nextUp(plan.tomorrow)}`;
+    </section>`;
   }
   const last = lastOf(t.dayId);
   const live = draft && draft.dayId === t.dayId && !draft.editingId;
@@ -284,6 +284,7 @@ function renderTrain() {
 
     ${trainHero(plan, lastOf)}
     ${missedNote(plan)}
+    ${pending ? "" : nextUp(plan.tomorrow)}
     ${names.length ? `<div class="marquee" aria-hidden="true"><div class="track">${[...names, ...names].map((x) => `<span>${esc(x)}</span><em>✦</em>`).join("")}</div></div>` : ""}
 
     <section class="panel sys fact" data-reveal>
@@ -498,7 +499,7 @@ function reviewScreen(d) {
       <span class="mono ${done >= plan ? "up" : "warn-text"}">${done}/${plan} sets</span>
     </button>`;
   }).join("");
-  return `${label("Review", `${p.done}/${p.total} sets`)}
+  return `<p class="small muted">${p.done < p.total ? `${p.total - p.done} set${p.total - p.done > 1 ? "s" : ""} without reps will not be saved. ` : ""}Tap an exercise to change it.</p>
     <section class="panel review">${rows}</section>
     <section class="panel">
       <label class="lbl" for="notes">Notes · sleep, energy, pain, busy gym</label>
@@ -1256,6 +1257,13 @@ app.addEventListener("touchstart", (ev) => {
   swipe = currentView() === "log" && ev.touches.length === 1 && !ev.target.closest("input, textarea, select, table, .dots")
     ? { x: t.clientX, y: t.clientY, at: Date.now() } : null;
 }, { passive: true });
+/* Claiming a horizontal swipe stops Chrome's swipe-to-go-back from also firing. */
+app.addEventListener("touchmove", (ev) => {
+  if (!swipe || ev.touches.length !== 1) return;
+  const t = ev.touches[0];
+  const dx = Math.abs(t.clientX - swipe.x), dy = Math.abs(t.clientY - swipe.y);
+  if (dx > 10 && dx > dy * 1.5 && ev.cancelable) ev.preventDefault();
+}, { passive: false });
 app.addEventListener("touchend", (ev) => {
   const s = swipe, d = Store.db.draft;
   swipe = null;
