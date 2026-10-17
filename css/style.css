@@ -21,7 +21,7 @@
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; overscroll-behavior-x: none; }
 body {
   margin: 0;
   background: radial-gradient(900px 520px at 50% -120px, rgba(58, 176, 255, 0.12), transparent 70%) no-repeat, var(--bg);
@@ -84,7 +84,8 @@ button { font: inherit; color: inherit; }
 .pill.s-error, .pill.s-signedout { color: var(--warn); border-color: rgba(255, 176, 46, 0.5); }
 .pill.s-error::before, .pill.s-signedout::before { background: var(--warn); }
 
-main { max-width: 860px; margin: 0 auto; padding: 4px var(--pad) 24px; }
+/* Kinetic headings are wider mid-animation; clip so mobile browsers do not zoom the page out. */
+main { max-width: 860px; margin: 0 auto; padding: 4px var(--pad) 24px; overflow-x: clip; }
 
 /* ---------- Reveal ---------- */
 [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
@@ -189,7 +190,7 @@ main { max-width: 860px; margin: 0 auto; padding: 4px var(--pad) 24px; }
 .btn.full { width: 100%; margin-top: 10px; }
 .btn.sm { min-height: 36px; padding: 0 14px; font-size: 0.68rem; }
 .btn.big { width: 100%; min-height: 60px; font-size: 0.85rem; margin-top: 10px; }
-.btn.yt { margin-top: 12px; background: #ff3d2e; border-color: #ff3d2e; color: #fff; }
+.btn.yt { margin-top: 12px; background: #d62a1f; border-color: #d62a1f; color: #fff; }
 .panel.accent .btn.primary { background: var(--accent-ink); color: var(--accent); border-color: var(--accent-ink); }
 .panel.accent .btn { border-color: rgba(4, 16, 31, 0.45); color: var(--accent-ink); }
 .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
@@ -381,7 +382,7 @@ input.wk-info { width: 100%; min-height: 40px; padding: 0 12px; border-radius: 1
 .tabs a.active { background: var(--accent); color: var(--accent-ink); box-shadow: 0 0 16px rgba(58, 176, 255, 0.45); }
 
 /* ---------- Train extras ---------- */
-.hero.rest h1, .hero.cleared h1 { color: var(--ink); }
+.hero.rest-day h1, .hero.cleared h1 { color: var(--ink); }
 .hero.cleared h1 .outline { -webkit-text-stroke: 1.5px var(--accent); }
 .anyway summary { list-style: none; }
 .anyway summary::-webkit-details-marker { display: none; }
@@ -422,6 +423,7 @@ input.wk-info { width: 100%; min-height: 40px; padding: 0 12px; border-radius: 1
 .dot { flex: 0 0 auto; min-width: 32px; height: 32px; padding: 0 6px; border-radius: 999px; border: 1px solid var(--line2); background: transparent; color: var(--muted); font-family: var(--mono); font-size: 0.64rem; cursor: pointer; }
 .dot.ok { border-color: var(--accent); color: var(--accent); }
 .dot.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; box-shadow: 0 0 12px rgba(58, 176, 255, 0.5); }
+#log-body { touch-action: pan-y pinch-zoom; }
 .ex-screen { margin-top: 8px; }
 .ex-media { position: relative; max-width: 520px; margin-top: 14px; padding-right: 30%; }
 .ex-media .photo { position: relative; display: block; width: 100%; aspect-ratio: 1; padding: 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--line2); background: #fff; cursor: pointer; }
