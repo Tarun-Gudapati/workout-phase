@@ -131,6 +131,40 @@ const Logic = (() => {
     return ymd(d);
   }
 
+  const dayKey = (d) => Store.DAYS[(d.getDay() + 6) % 7];
+  /* Same integer for the same local calendar date on every device, whatever the time zone. */
+  const dayNumber = (d = new Date()) => Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5);
+
+  /* This week (from Monday) against settings.week. A finished session clears a scheduled day if it is the
+     same workout, done that day or later this week (a make-up). Today claims a session done today first. */
+  function weekPlan(week, list = Store.finishedSessions(), now = new Date()) {
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+    const slots = [];
+    for (let k = (today.getDay() + 6) % 7; k >= 0; k--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - k);
+      slots.push({ key: dayKey(d), date: ymd(d), dayId: week[dayKey(d)] || null });
+    }
+    const cur = slots[slots.length - 1];
+    const pool = list.map((s) => ({ s, day: ymd(new Date(s.date)) })).filter((p) => p.day >= slots[0].date && p.day <= cur.date);
+    const used = new Set();
+    const claim = (slot, exact) => {
+      const hit = pool.find((p) => !used.has(p.s.id) && p.s.dayId === slot.dayId && (exact ? p.day === slot.date : p.day >= slot.date));
+      if (hit) used.add(hit.s.id);
+      return hit ? hit.s : null;
+    };
+    const doneToday = cur.dayId ? claim(cur, true) : null;
+    const missed = slots.slice(0, -1).filter((sl) => sl.dayId && !claim(sl, false));
+    const t = new Date(today);
+    t.setDate(t.getDate() + 1);
+    return {
+      today: cur, doneToday, missed,
+      trainedToday: pool.filter((p) => p.day === cur.date).map((p) => p.s),
+      tomorrow: { key: dayKey(t), dayId: week[dayKey(t)] || null },
+    };
+  }
+
   function weekTotals(key, list = Store.finishedSessions()) {
     const out = { sessions: 0, sets: 0, reps: 0, volume: 0, muscles: {} };
     list.filter((s) => weekStart(s.date) === key).forEach((s) => {
@@ -187,6 +221,6 @@ const Logic = (() => {
   return {
     num, round, fmtKg, e1rm, workSets, entryStats, fmtSet, fmtSets,
     previousEntry, previousSessionOfDay, compareEntry, suggestNext, sessionStats,
-    ymd, parseYmd, weekStart, addWeeks, weekTotals, pct, dietDecision,
+    ymd, parseYmd, weekStart, addWeeks, weekTotals, pct, dietDecision, dayKey, dayNumber, weekPlan,
   };
 })();
