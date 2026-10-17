@@ -37,7 +37,7 @@ const Coach = (() => {
     });
     return `${title()}
       ${label("(01) Your coach code", "share it")}
-      <section class="panel sys" data-reveal>
+      <section class="panel framed" data-reveal>
         <div class="bignum">${esc(code)}</div>
         <p class="small muted">Athletes enter this code under Account → Coach. You get read-only access to their workouts, check-ins and calorie target.</p>
         <div class="row"><button class="btn acc" data-coach="copy">Copy code</button></div>
@@ -95,7 +95,7 @@ const Coach = (() => {
       </div>
       ${weekText ? `<p class="small muted"><span class="mono">Their week</span> ${esc(weekText)}</p>` : ""}
       ${label("(02) Diet", `target ${fmtInt(kcal)} kcal`)}
-      <section class="panel sys decision d-${dec.action}" data-reveal><h3>${esc(dec.title)}</h3><p class="small">${esc(dec.text)}</p></section>
+      <section class="panel framed decision d-${dec.action}" data-reveal><h3>${esc(dec.title)}</h3><p class="small">${esc(dec.text)}</p></section>
       ${label("(03) Key lifts", "latest vs first")}
       <section class="panel" data-reveal>
         ${top.length ? `<table class="mini"><thead><tr><th>Exercise</th><th class="r">Latest</th><th class="r">Δ</th></tr></thead><tbody>
