@@ -48,9 +48,9 @@ const Account = (() => {
   const msgHtml = () => `<p id="acct-msg" class="small ${msg && msg.bad ? "danger-text" : "up"}" aria-live="polite">${msg ? esc(msg.text) : ""}</p>`;
 
   const field = (lbl, name, type, extra = "") => `<label class="wide">${lbl}<input type="${type}" name="${name}" ${extra}></label>`;
-  const emailField = () => field("Email", "email", "email", `autocomplete="email" required value="${esc(email)}"`);
-  const codeField = () => field("Code from the email", "code", "text", `inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,10}" required`);
-  const newPassField = (lbl = "New password · 8+ characters") => field(lbl, "password", "password", `autocomplete="new-password" minlength="8" required`);
+  const emailField = () => field("Email", "email", "email", `autocomplete="email" enterkeyhint="next" required value="${esc(email)}"`);
+  const codeField = () => field("Code from the email", "code", "text", `inputmode="numeric" autocomplete="one-time-code" enterkeyhint="next" pattern="[0-9 ]{6,10}" required`);
+  const newPassField = (lbl = "New password · 8+ characters") => field(lbl, "password", "password", `autocomplete="new-password" enterkeyhint="go" minlength="8" required`);
   const submit = (text, cls = "acc") => `<button class="btn ${cls} big wide" type="submit">${text}</button>`;
 
   function authForm() {
@@ -67,7 +67,7 @@ const Account = (() => {
         return `<p class="small">Enter the code we emailed to <b>${esc(email)}</b> and choose a new password.</p>
           <form id="acct-resetcode" class="form">${codeField()}${newPassField()}${submit("Set new password")}</form>`;
       default:
-        return `<form id="acct-signin" class="form">${emailField()}${field("Password", "password", "password", `autocomplete="current-password" required`)}${submit("Sign in")}</form>
+        return `<form id="acct-signin" class="form">${emailField()}${field("Password", "password", "password", `autocomplete="current-password" enterkeyhint="go" required`)}${submit("Sign in")}</form>
           <button class="link" data-acct-mode="reset">Forgot password?</button>`;
     }
   }
@@ -80,7 +80,7 @@ const Account = (() => {
       ${s.signedIn ? `<section class="panel warn" data-reveal><b>Signed out.</b> <span class="small muted">${esc(statusLine())}</span></section>` : ""}
       <p class="small muted">An account backs up your log and syncs it between your devices. The app still works offline in the gym.</p>
       <div class="subtabs">${tab("signin", "Sign in")}${tab("signup", "Create account")}</div>
-      <section class="panel sys" data-reveal>${authForm()}${msgHtml()}</section>
+      <section class="panel framed" data-reveal>${authForm()}${msgHtml()}</section>
       ${!Store.account ? `${label("Or")}
         <section class="panel" data-reveal>
           <p class="small">Keep the log only in this browser, like before. You can sign in later and upload it.</p>
@@ -129,7 +129,7 @@ const Account = (() => {
       <h1 class="display page-title kinetic">Account</h1>
       ${recovery ? `<section class="panel accent" data-reveal><h3>Set a new password</h3><form id="acct-pass" class="form">${newPassField()}${submit("Save password")}</form></section>` : ""}
       ${label("(01) Signed in", STATE_TEXT[s.state])}
-      <section class="panel sys" data-reveal>
+      <section class="panel framed" data-reveal>
         <div class="ex-name">${esc(p.display_name || "")}</div>
         <div class="mono muted">${esc(p.email || (Sync.user && Sync.user.email) || "")}</div>
         <p class="small" id="acct-status">${esc(statusLine())}</p>
@@ -150,7 +150,7 @@ const Account = (() => {
   function render() {
     if (!Sync.enabled) {
       root.innerHTML = `<h1 class="display page-title kinetic">Account</h1>
-        <section class="panel sys" data-reveal><p class="small">Cloud sync is not set up for this app. Your log is saved only in this browser on this device. Use Log → Export backup to move it.</p></section>`;
+        <section class="panel framed" data-reveal><p class="small">Cloud sync is not set up for this app. Your log is saved only in this browser on this device. Use Log → Export backup to move it.</p></section>`;
       return;
     }
     if (needsSignIn()) renderAuth();

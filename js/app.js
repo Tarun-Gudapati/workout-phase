@@ -23,6 +23,8 @@ const agoText = (iso) => {
 const pctText = (p) => (p == null ? "—" : `${p >= 0 ? "+" : ""}${(p * 100).toFixed(1)}%`);
 const deltaCls = (p) => (p == null ? "muted" : p > 0.005 ? "up" : p < -0.005 ? "down" : "same");
 const imgSrc = (ex, f) => `img/ex/${ex.img}-${f}.jpg`;
+const IMG = `width="640" height="427" loading="lazy" decoding="async"`;
+const DAY_NAMES = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" };
 const ytUrl = (ex) => "https://www.youtube.com/results?search_query=" + encodeURIComponent("Jeff Nippard " + ex.yt);
 
 function isoWeek(d = new Date()) {
@@ -43,12 +45,29 @@ function tierBadge(t) {
 
 function thumb(ex, attrs = "") {
   return `<button class="thumb" ${attrs} aria-label="How to do ${esc(ex.name)}">
-    <img src="${imgSrc(ex, 0)}" alt="" loading="lazy"><img class="f2" src="${imgSrc(ex, 1)}" alt="" loading="lazy"></button>`;
+    <img src="${imgSrc(ex, 0)}" alt="" ${IMG}><img class="f2" src="${imgSrc(ex, 1)}" alt="" ${IMG}></button>`;
+}
+
+const mmap = (ex) => `<div class="mmap">${MuscleMap.svg(ex.muscle, ex.secondary || [])}</div>`;
+
+function muscleLegend(ex) {
+  const sec = ex.secondary || [];
+  return `<p class="mm-legend small"><span class="key p"></span><b>Main:</b> ${esc(ex.muscle)}${sec.length ? ` <span class="muted">·</span> <span class="key s"></span><b>Helpers:</b> ${esc(sec.join(", "))}` : ""}</p>`;
+}
+
+const caution = (ex) => (ex.caution ? `<p class="caution small"><b>Careful</b>${esc(ex.caution)}</p>` : "");
+
+function exMedia(ex, attrs = "") {
+  return `<div class="ex-media">
+    <button class="photo" ${attrs} aria-label="How to do ${esc(ex.name)}"><img src="${imgSrc(ex, 0)}" alt="" ${IMG}><img class="f2" src="${imgSrc(ex, 1)}" alt="" ${IMG}></button>
+    ${mmap(ex)}
+  </div>`;
 }
 
 function howto(ex) {
   return `<div class="howto">
-    <div class="frames"><img src="${imgSrc(ex, 0)}" alt="${esc(ex.name)} start" loading="lazy"><img src="${imgSrc(ex, 1)}" alt="${esc(ex.name)} end" loading="lazy"></div>
+    <div class="frames"><img src="${imgSrc(ex, 0)}" alt="${esc(ex.name)} start" ${IMG}><img src="${imgSrc(ex, 1)}" alt="${esc(ex.name)} end" ${IMG}></div>
+    <div class="howto-mm">${mmap(ex)}<div>${muscleLegend(ex)}${caution(ex)}</div></div>
     ${ex.similar ? `<p class="small muted">The image shows a similar movement. Use the cues and the video for exact form.</p>` : ""}
     <ol class="cues">${ex.cues.map((c) => `<li>${esc(c)}</li>`).join("")}</ol>
     <a class="btn yt full" href="${ytUrl(ex)}" target="_blank" rel="noopener">Watch Jeff Nippard on YouTube ↗</a>
@@ -65,17 +84,28 @@ function label(left, right = "") {
   return `<div class="label mono"><span>${left}</span><b>${right}</b></div>`;
 }
 
-const RANKS = [["E", 0], ["D", 10], ["C", 25], ["B", 50], ["A", 100], ["S", 200]];
-function hunterRank(n) {
+function trainingLevel(n) {
   let i = 0;
-  while (i + 1 < RANKS.length && n >= RANKS[i + 1][1]) i++;
-  const [letter, from] = RANKS[i];
-  const next = RANKS[i + 1];
-  return { letter, next: next && next[0], toNext: next ? next[1] - n : 0, pct: next ? Math.round(((n - from) / (next[1] - from)) * 100) : 100 };
+  while (i + 1 < LEVELS.length && n >= LEVELS[i + 1].at) i++;
+  const cur = LEVELS[i], next = LEVELS[i + 1];
+  return { i, cur, next, toNext: next ? next.at - n : 0, pct: next ? Math.round(((n - cur.at) / (next.at - cur.at)) * 100) : 100 };
+}
+
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+
+function levelCard(n) {
+  const L = trainingLevel(n);
+  return `<a class="panel framed level-card" href="#/levels" data-reveal aria-label="Training level ${esc(L.cur.name)}. See all levels">
+    <span class="lv-num mono">Level ${L.i + 1}</span>
+    <span class="lv-main"><b class="lv-name">${esc(L.cur.name)}</b>
+      <span class="bar"><i style="width:${L.pct}%"></i></span>
+      <span class="small muted">${L.next ? `${plural(L.toNext, "workout")} to ${esc(L.next.name)}` : "Top level. Keep the habit going."}</span></span>
+    <span class="go" aria-hidden="true">→</span>
+  </a>`;
 }
 
 function foot() {
-  return `<footer class="foot"><div class="big">Arise</div><span class="mono">Jin-Woo Build · Phase 1</span><span class="mono">${Store.account ? "Synced to your account" : "Data stays on this device"}</span></footer>`;
+  return `<footer class="foot"><div class="big" aria-hidden="true">Beyond</div><span class="mono">Beyond Training</span><span class="mono">${Store.account ? "Synced to your account" : "Data stays on this device"}</span></footer>`;
 }
 
 /* ---------- Motion ---------- */
@@ -128,7 +158,7 @@ setInterval(tickClock, 20000);
 /* ---------- Router ---------- */
 
 const VIEWS = () => ({
-  train: renderTrain, log: renderLog, summary: renderSummary, history: renderHistory, progress: renderProgress, body: renderBody, plan: renderPlan,
+  train: renderTrain, log: renderLog, summary: renderSummary, history: renderHistory, progress: renderProgress, body: renderBody, plan: renderPlan, levels: renderLevels,
   account: Account.render, coach: Coach.render,
 });
 
@@ -138,8 +168,10 @@ function paint(keepScroll) {
   const y = window.scrollY;
   const h = location.hash.replace(/^#\/?/, "") || "train";
   const [view, arg] = h.split("/");
-  document.querySelectorAll(".tabs a").forEach((a) => a.classList.toggle("active", a.dataset.tab === (view === "log" || view === "summary" ? "train" : view)));
+  document.querySelectorAll(".tabs a").forEach((a) => a.classList.toggle("active", a.dataset.tab === (["log", "summary", "levels"].includes(view) ? "train" : view)));
   (VIEWS()[view] || renderTrain)(arg);
+  Device.keepAwake(view === "log" && !!Store.db.draft);
+  document.documentElement.classList.toggle("on-log", view === "log");
   renderTopRight(view);
   updateRest();
   if (keepScroll) {
@@ -169,13 +201,6 @@ function renderTopRight(view) {
 
 /* ---------- Train ---------- */
 
-function nextDayId() {
-  const fin = Store.finishedSessions();
-  const last = fin[fin.length - 1];
-  if (!last) return PROGRAM.order[0];
-  return PROGRAM.order[(PROGRAM.order.indexOf(last.dayId) + 1) % PROGRAM.order.length];
-}
-
 function weekStats() {
   const wk = Logic.weekStart();
   const cur = Logic.weekTotals(wk);
@@ -188,57 +213,155 @@ function weekStats() {
   <p class="small muted">Week from Monday ${fmtWeek(wk)}. Last week: ${prev.sessions} workouts, ${prev.sets} sets, ${fmtInt(prev.volume)} kg. Compare at the end of the week.</p>`;
 }
 
+const restNote = (key) => Store.db.settings.restLabels[key] || "";
+
+function nextUp(t) {
+  const d = t.dayId && PROGRAM.days[t.dayId];
+  const note = restNote(t.key);
+  return `<section class="panel framed next-up" data-reveal>
+    <div class="mono muted">Tomorrow · ${DAY_NAMES[t.key]}</div>
+    <h3>${d ? esc(d.name) : "Rest"}</h3>
+    <p class="small muted">${d ? `${esc(d.focus)} · ${d.slots.length} exercises` : `Recovery day${note ? " · " + esc(note) : ""}`}</p>
+  </section>`;
+}
+
+function trainHero(plan, lastOf) {
+  const t = plan.today;
+  const d = t.dayId && PROGRAM.days[t.dayId];
+  const draft = Store.db.draft;
+  const meta = (extra = "") => `<div class="meta mono"><span>Today · ${DAY_NAMES[t.key]}${extra}</span><span>${fmtDate(new Date())}</span></div>`;
+  if (!d) {
+    const note = restNote(t.key);
+    const trained = plan.trainedToday.map((s) => PROGRAM.days[s.dayId] ? PROGRAM.days[s.dayId].name : "Workout");
+    return `<section class="hero rest-day">
+      ${meta(note ? " · " + esc(note) : "")}
+      <h1 class="display kinetic">Rest</h1>
+      <p class="lede split"><b>${split("Recovery day.")}</b> ${split("Muscles grow while you rest. Walk, stretch, eat your protein and sleep 7-8 hours.")}</p>
+      ${trained.length ? `<p class="mono up">Trained today · ${esc(trained.join(", "))}</p>` : ""}
+      <details class="anyway"><summary class="btn full">Train anyway</summary>
+        <div class="anyway-list">${PROGRAM.order.map((id) => `<button class="btn" data-start="${id}">${esc(PROGRAM.days[id].name)}</button>`).join("")}</div>
+      </details>
+    </section>`;
+  }
+  if (plan.doneToday) {
+    const st = Logic.sessionStats(plan.doneToday);
+    return `<section class="hero cleared">
+      ${meta(` · <b class="up">Cleared</b>`)}
+      <h1 class="display kinetic${d.name.length > 5 ? " long" : ""}"><span class="outline">${esc(d.name)}</span></h1>
+      <p class="lede"><b>Workout done.</b> ${st.sets} sets, ${fmtInt(st.volume)} kg. Eat, rest and sleep well.</p>
+      <a class="cta ghost" href="#/summary/${plan.doneToday.id}"><span>See summary</span><span class="arrow">↗</span></a>
+    </section>`;
+  }
+  const last = lastOf(t.dayId);
+  const live = draft && draft.dayId === t.dayId && !draft.editingId;
+  return `<section class="hero">
+    ${meta()}
+    <h1 class="display kinetic${d.name.length > 5 ? " long" : ""}">${esc(d.name)}</h1>
+    <p class="lede split"><b>${split(d.focus + ".")}</b> ${split(`${d.slots.length} exercises. ${last ? "Last time " + agoText(last.date) + "." : "First time."}`)}</p>
+    ${live
+      ? `<a class="cta" href="#/log"><span>Continue workout</span><span class="arrow">→</span></a>`
+      : `<button class="cta" data-start="${t.dayId}"><span>Start workout</span><span class="arrow">→</span></button>`}
+  </section>`;
+}
+
+function missedNote(plan) {
+  if (!plan.missed.length) return "";
+  return `<section class="panel warn missed" data-reveal>
+    <div class="mono warn-text">Missed this week</div>
+    ${plan.missed.map((m) => `<div class="missed-row"><span><b>${esc(PROGRAM.days[m.dayId].name)}</b> <span class="mono muted">${DAY_NAMES[m.key].slice(0, 3)} ${fmtWeek(m.date)}</span></span><button class="btn sm" data-start="${m.dayId}">Start</button></div>`).join("")}
+    <p class="small muted">Make one up if you have time. If not, skip it and stay on plan.</p>
+  </section>`;
+}
+
+let factShift = 0;
+const factText = () => FACTS[(((Logic.dayNumber() * 7 + factShift) % FACTS.length) + FACTS.length) % FACTS.length];
+
 function renderTrain() {
   const db = Store.db;
   const fin = Store.finishedSessions();
-  const next = nextDayId();
-  const nd = PROGRAM.days[next];
-  const n = PROGRAM.order.length;
+  const plan = Logic.weekPlan(db.settings.week, fin);
+  const t = plan.today;
+  const pending = t.dayId && !plan.doneToday ? t.dayId : null;
   const lastOf = (id) => [...fin].reverse().find((s) => s.dayId === id);
-  const lastNext = lastOf(next);
-  const names = nd.slots.map((s) => EXERCISES[db.swaps[s.id] || s.ex].name);
+  const showId = pending || plan.tomorrow.dayId || t.dayId;
+  const names = showId ? PROGRAM.days[showId].slots.map((s) => EXERCISES[db.swaps[s.id] || s.ex].name) : [];
   const backupDue = !Store.account && fin.length >= 3 && (!db.settings.lastBackup || daysAgo(db.settings.lastBackup) >= 14);
-  const r = hunterRank(fin.length);
 
   app.innerHTML = `
     ${db.draft ? `<section class="panel accent" data-reveal>
-      <div class="mono">Quest in progress · started ${fmtTime(db.draft.date)}</div>
+      <div class="mono">${db.draft.editingId ? "Editing a saved workout" : `Workout in progress · started ${fmtTime(db.draft.date)}`}</div>
       <h3 style="font-size:2.6rem;margin-top:6px">${esc(PROGRAM.days[db.draft.dayId].name)}</h3>
-      <div class="row"><a class="btn primary" href="#/log">Continue</a><button class="btn" data-act="discard">Discard</button></div>
+      <div class="row"><a class="btn primary" href="#/log">Continue</a><button class="btn" data-act="discard">${db.draft.editingId ? "Cancel edit" : "Discard"}</button></div>
     </section>` : ""}
     ${backupDue ? `<section class="panel warn" data-reveal><b>Back up your log.</b> <span class="muted">It is saved only in this browser.</span> <a class="link" href="#/history">Export</a></section>` : ""}
 
-    <section class="hero">
-      <div class="meta mono"><span>Quest ${two(PROGRAM.order.indexOf(next) + 1)} / ${two(n)}</span><span>${fmtDate(new Date())}</span></div>
-      <h1 class="display kinetic${nd.name.length > 5 ? " long" : ""}">${esc(nd.name)}</h1>
-      <p class="lede split"><b>${split(nd.focus + ".")}</b> ${split(`${nd.slots.length} exercises. ${lastNext ? "Last time " + agoText(lastNext.date) + "." : "First time."}`)}</p>
-      <button class="cta" data-start="${next}"><span>Start quest</span><span class="arrow">→</span></button>
+    ${trainHero(plan, lastOf)}
+    ${missedNote(plan)}
+    ${pending ? "" : nextUp(plan.tomorrow)}
+    ${names.length ? `<div class="marquee" aria-hidden="true"><div class="track">${[...names, ...names].map((x) => `<span>${esc(x)}</span><em>✦</em>`).join("")}</div></div>` : ""}
+
+    <section class="panel framed fact" data-reveal>
+      <div class="fact-head"><span class="mono fact-label">Did you know</span><button class="link" data-act="fact">Another</button></div>
+      <p id="fact-text" aria-live="polite">${esc(factText())}</p>
     </section>
-    <div class="marquee" aria-hidden="true"><div class="track">${[...names, ...names].map((x) => `<span>${esc(x)}</span><em>✦</em>`).join("")}</div></div>
 
     ${label("(01) This week", "vs last week")}
     ${weekStats()}
 
-    ${label("(02) All quests", "5-day split")}
+    ${label("(02) Training level", `${plural(fin.length, "workout")} done`)}
+    ${levelCard(fin.length)}
+
+    ${label("(03) All workouts", "start any day")}
     <ol class="daylist">
       ${PROGRAM.order.map((id, i) => {
         const d = PROGRAM.days[id], l = lastOf(id);
-        return `<li data-reveal><button class="dayrow${id === next ? " next" : ""}" data-start="${id}">
+        return `<li data-reveal><button class="dayrow${id === pending ? " next" : ""}" data-start="${id}">
           <span class="idx mono">${two(i + 1)}</span><span class="name">${esc(d.name)}</span><span class="go">↗</span>
           <span class="info">${esc(d.focus)} · ${l ? "Last " + fmtDate(l.date) : "Not done yet"}</span>
         </button></li>`;
       }).join("")}
     </ol>
 
-    ${label("(03) Hunter rank", `${fin.length} quests cleared`)}
-    <section class="panel sys rank" data-reveal>
-      <div class="letter">${r.letter}</div>
-      <div><h3>${r.letter}-Rank hunter</h3>
-        <p class="small muted">${r.next ? `${r.toNext} more workout${r.toNext === 1 ? "" : "s"} to reach ${r.next}-Rank.` : "Top rank. Keep the streak."}</p>
-        <div class="bar"><i style="width:${r.pct}%"></i></div></div>
-    </section>
+    ${Device.installCard()}
     ${foot()}
   `;
+}
+
+const LOCK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V8a3 3 0 0 0-6 0z"/></svg>`;
+
+function renderLevels() {
+  const n = Store.finishedSessions().length;
+  const L = trainingLevel(n);
+  const rungs = LEVELS.map((lv, i) => {
+    const state = i < L.i ? "done" : i === L.i ? "here" : "locked";
+    const mark = state === "done" ? "✓" : state === "here" ? String(i + 1) : LOCK_ICON;
+    const status = state === "done" ? `<span class="mono up">Done</span>` : state === "locked" ? `<span class="mono muted">Locked · ${plural(lv.at - n, "workout")} to go</span>` : "";
+    return `<li class="rung ${state}" data-reveal>
+      <span class="rung-mark" aria-hidden="true">${mark}</span>
+      <div class="rung-body">
+        <div class="rung-head"><b>${esc(lv.name)}</b><span class="mono muted">${lv.at ? plural(lv.at, "workout") : "Start"}</span></div>
+        <p class="small muted">${esc(lv.text)}</p>
+        ${state === "here" ? `<div class="here-tag mono">You are here</div>
+          <div class="bar"><i style="width:${L.pct}%"></i></div>
+          <p class="small">${L.next ? `${n} of ${L.next.at} workouts · ${plural(L.toNext, "workout")} to ${esc(L.next.name)}` : "Top level reached."}</p>` : status}
+      </div>
+    </li>`;
+  }).reverse().join("");
+  app.innerHTML = `
+    <a class="btn sm back-btn" href="#/train">← Train</a>
+    <h1 class="display page-title kinetic">Levels</h1>
+    <p class="small muted">${plural(n, "workout")} completed. You are <b class="up">${esc(L.cur.name)}</b>.</p>
+    <ol class="ladder">${rungs}</ol>
+    <section class="panel small muted" data-reveal><p>Levels count completed workouts. They measure consistency, not strength. Strength is tracked per exercise in Stats.</p></section>
+    ${foot()}
+  `;
+  /* Runs after paint() resets the scroll, so the current level is on screen. */
+  requestAnimationFrame(() => {
+    const here = app.querySelector(".rung.here");
+    if (!here) return;
+    const r = here.getBoundingClientRect();
+    if (r.bottom > innerHeight - 110) window.scrollTo({ top: r.top + scrollY - innerHeight * 0.3, behavior: "instant" });
+  });
 }
 
 function startWorkout(dayId) {
@@ -250,9 +373,10 @@ function startWorkout(dayId) {
     dayId,
     date: new Date().toISOString(),
     notes: "",
+    current: 0,
     entries: day.slots.map((sl) => {
       const exId = db.swaps[sl.id] || sl.ex;
-      return { slotId: sl.id, exId, target: { sets: sl.sets, reps: sl.reps, rir: sl.rir }, sets: blankSets(exId, sl.sets, sl.reps) };
+      return { slotId: sl.id, exId, target: { sets: sl.sets, reps: sl.reps, rir: sl.rir }, sets: blankSets(exId, sl.sets, sl.reps), notes: "" };
     }),
   };
   Store.save();
@@ -279,64 +403,126 @@ function logProgress(d) {
   return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
 }
 
+const logIndex = (d) => Math.max(0, Math.min(d.entries.length, Math.floor(num(d.current))));
+const entryDone = (e) => e.sets.length > 0 && e.sets.every((s) => num(s.reps) > 0);
+
 function updateLogProgress() {
   const d = Store.db.draft;
   if (!d) return;
   const p = logProgress(d);
   const bar = document.getElementById("log-bar");
   const txt = document.getElementById("log-count");
+  const step = document.getElementById("log-step");
+  const pos = document.getElementById("log-pos");
   if (bar) bar.style.width = p.pct + "%";
   if (txt) txt.textContent = `${p.done}/${p.total} sets`;
+  if (step) step.textContent = stepText(d);
+  if (pos) {
+    pos.innerHTML = logPos(d);
+    centerDot();
+  }
+}
+
+function centerDot() {
+  const pos = document.getElementById("log-pos");
+  const on = pos && pos.querySelector(".on");
+  if (on) pos.scrollLeft = on.offsetLeft - pos.offsetLeft - (pos.clientWidth - on.offsetWidth) / 2;
+}
+
+const stepText = (d) => (logIndex(d) < d.entries.length ? `Exercise ${logIndex(d) + 1} of ${d.entries.length}` : "Review");
+
+function logPos(d) {
+  const cur = logIndex(d), n = d.entries.length;
+  const dot = (i, text, name, ok) => `<button class="dot${i === cur ? " on" : ""}${ok ? " ok" : ""}" data-goto="${i}" aria-label="${esc(name)}"${i === cur ? ' aria-current="step"' : ""}>${text}</button>`;
+  return d.entries.map((e, i) => dot(i, two(i + 1), `Exercise ${i + 1}: ${EXERCISES[e.exId].name}`, entryDone(e))).join("") + dot(n, "✓", "Review and finish", false);
 }
 
 function renderLog() {
   const d = Store.db.draft;
   if (!d) {
-    app.innerHTML = `<h1 class="display page-title">No quest</h1><p class="muted">Start a workout from the Train tab.</p><a class="cta" href="#/train"><span>Go to Train</span><span class="arrow">→</span></a>`;
+    app.innerHTML = `<h1 class="display page-title">No workout</h1><p class="muted">Start a workout from the Train tab.</p><a class="cta" href="#/train"><span>Go to Train</span><span class="arrow">→</span></a>`;
     return;
   }
   const day = PROGRAM.days[d.dayId];
   const p = logProgress(d);
   app.innerHTML = `
     <div class="log-head">
-      <div class="row1"><h1 class="display">${esc(day.name)}${d.editingId ? " <span class='outline'>Edit</span>" : ""}</h1><span class="mono muted" id="log-count">${p.done}/${p.total} sets</span></div>
+      <div class="row1"><h1 class="display">${esc(day.name)}${d.editingId ? " <span class='outline'>Edit</span>" : ""}</h1>
+        <span class="r"><span class="mono step" id="log-step">${stepText(d)}</span><br><span class="mono muted" id="log-count">${p.done}/${p.total} sets</span></span></div>
       <div class="bar"><i id="log-bar" style="width:${p.pct}%"></i></div>
+      <div class="dots" id="log-pos">${logPos(d)}</div>
     </div>
-    <p class="small muted">The weight starts at today's target. Grey reps are the target for that set. Type what you did, or tap ✓ on an empty set if you hit the target exactly. Everything saves as you type.</p>
-    ${d.entries.map((e, i) => exerciseCard(d, e, i)).join("")}
-    <section class="panel" data-reveal>
-      <label class="lbl" for="notes">Notes · sleep, energy, pain, busy gym</label>
-      <textarea id="notes" data-notes rows="3">${esc(d.notes)}</textarea>
-    </section>
-    <button class="cta" data-act="finish"><span>Finish quest</span><span class="arrow">✓</span></button>
-    <button class="btn full" data-act="discard">${d.editingId ? "Cancel edit" : "Discard workout"}</button>
+    <div id="log-body">${logBody(d)}</div>
   `;
+  centerDot();
 }
 
-function exerciseCard(d, e, i) {
+function logBody(d) {
+  const i = logIndex(d);
+  return i < d.entries.length ? exerciseScreen(d, d.entries[i], i) : reviewScreen(d);
+}
+
+/* Only the exercise area is repainted; focus returns to the nav button that was used. */
+function goTo(i) {
+  const d = Store.db.draft;
+  const body = document.getElementById("log-body");
+  if (!d || !body || currentView() !== "log") return;
+  i = Math.max(0, Math.min(d.entries.length, i));
+  if (i === logIndex(d)) return;
+  const nav = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.nav : null;
+  d.current = i;
+  Store.save();
+  body.innerHTML = logBody(d);
+  updateLogProgress();
+  window.scrollTo({ top: 0, behavior: "instant" });
+  const b = nav && app.querySelector(`[data-nav="${nav}"]:not([disabled])`);
+  if (b) b.focus({ preventScroll: true });
+}
+
+function previousNote(exId, d) {
+  const fin = Store.finishedSessions();
+  for (let i = fin.length - 1; i >= 0; i--) {
+    const s = fin[i];
+    if (s.id === d.editingId || (d.editingId && s.date >= d.date)) continue;
+    const e = s.entries.find((x) => x.exId === exId && x.notes);
+    if (e) return { date: s.date, text: e.notes };
+  }
+  return null;
+}
+
+function logNav(i, n) {
+  return `<div class="lognav stick">
+    <button class="btn big" data-nav="back" ${i === 0 ? "disabled" : ""}>← Back</button>
+    <button class="btn acc big" data-nav="next">${i === n - 1 ? "Review" : "Next"} →</button>
+  </div>`;
+}
+
+function exerciseScreen(d, e, i) {
   const ex = EXERCISES[e.exId];
   const prev = Logic.previousEntry(e.exId, d.editingId ? d.date : null, d.editingId);
   const prevSets = prev ? Logic.workSets(prev.entry) : [];
   const sug = prev ? Logic.suggestNext({ ...prev.entry, target: e.target }) : null;
+  const note = previousNote(e.exId, d);
   const rirOpts = (v) => ["", "0", "1", "2", "3", "4"].map((o) => `<option value="${o}" ${String(v) === o ? "selected" : ""}>${o === "" ? "–" : o === "4" ? "4+" : o}</option>`).join("");
-  return `<article class="panel ex" data-i="${i}" data-reveal>
+  return `<article class="panel ex ex-screen" data-i="${i}">
     <div class="ex-head mono"><span>${two(i + 1)} / ${two(d.entries.length)} · ${esc(ex.muscle)}</span>${tierBadge(ex.tier)}</div>
     <div class="ex-title">${esc(ex.name)}</div>
     <div class="ex-sub mono">${repsText(e.target, ex)}</div>
-    <div class="ex-top">
-      ${thumb(ex, `data-howto="${i}"`)}
-      <div class="ex-info">
-        ${prev
-          ? `<div class="last"><span class="mono">Last · ${fmtDate(prev.session.date)}</span><br>${esc(Logic.fmtSets(prev.entry))}</div><div class="goal"><b>Today's target</b>${esc(sug.text)}</div>`
-          : `<div class="goal"><b>First time</b>Pick a weight you can lift for ${e.target.reps[0]}-${e.target.reps[1]} reps with ${esc(e.target.rir)} reps left.</div>`}
-      </div>
+    ${exMedia(ex, `data-howto="${i}"`)}
+    ${muscleLegend(ex)}
+    ${caution(ex)}
+    <div class="ex-info">
+      ${prev
+        ? `<div class="last"><span class="mono">Last · ${fmtDate(prev.session.date)}</span><br>${esc(Logic.fmtSets(prev.entry))}</div><div class="goal"><b>Today's target</b>${esc(sug.text)}</div>`
+        : `<div class="goal"><b>First time</b>Pick a weight you can lift for ${e.target.reps[0]}-${e.target.reps[1]} reps with ${esc(e.target.rir)} reps left.</div>`}
     </div>
+    ${note ? `<div class="prev-note small"><span class="mono">Last time you wrote · ${fmtDate(note.date)}</span>${esc(note.text)}</div>` : ""}
     <div class="ex-actions">
       <button class="link" data-howto="${i}">How to</button>
       <button class="link" data-swap="${i}">Swap</button>
       <a class="link" href="${ytUrl(ex)}" target="_blank" rel="noopener">Video ↗</a>
     </div>
-    <div class="howto-wrap hidden" id="howto-${i}">${howto(ex)}</div>
+    ${i === 0 ? `<p class="small muted">The weight starts at today's target. Grey reps are the target for that set. Type what you did, or tap ✓ on an empty set if you hit the target exactly. Everything saves as you type.</p>` : ""}
     <table class="sets">
       <thead><tr><th>Set</th><th>kg${ex.perSide ? " /side" : ""}</th><th>Reps</th><th>RIR</th><th></th></tr></thead>
       <tbody>
@@ -344,8 +530,8 @@ function exerciseCard(d, e, i) {
           const p = prevSets[k] || prevSets[prevSets.length - 1];
           return `<tr class="${s.done ? "done" : ""}">
             <td class="c">${two(k + 1)}</td>
-            <td><input type="number" inputmode="decimal" step="any" min="0" data-f="kg" data-i="${i}" data-k="${k}" value="${esc(s.kg)}" placeholder="${p ? (num(p.kg) ? fmtKg(num(p.kg)) : "BW") : "kg"}"></td>
-            <td><input type="number" inputmode="numeric" step="1" min="0" data-f="reps" data-i="${i}" data-k="${k}" value="${esc(s.reps)}" placeholder="${s.goal ? esc(s.goal) : p ? num(p.reps) : e.target.reps[0] + "-" + e.target.reps[1]}"></td>
+            <td><input type="number" inputmode="decimal" step="any" min="0" data-f="kg" data-i="${i}" data-k="${k}" enterkeyhint="next" aria-label="Set ${k + 1} kg" value="${esc(s.kg)}" placeholder="${p ? (num(p.kg) ? fmtKg(num(p.kg)) : "BW") : "kg"}"></td>
+            <td><input type="number" inputmode="numeric" step="1" min="0" data-f="reps" data-i="${i}" data-k="${k}" enterkeyhint="${k === e.sets.length - 1 ? "done" : "next"}" aria-label="Set ${k + 1} reps" value="${esc(s.reps)}" placeholder="${s.goal ? esc(s.goal) : p ? num(p.reps) : e.target.reps[0] + "-" + e.target.reps[1]}"></td>
             <td><select data-f="rir" data-i="${i}" data-k="${k}" aria-label="Reps in reserve">${rirOpts(s.rir)}</select></td>
             <td><button class="tick ${s.done ? "on" : ""}" data-tick="${i}:${k}" aria-label="Set done">✓</button></td>
           </tr>`;
@@ -353,7 +539,45 @@ function exerciseCard(d, e, i) {
       </tbody>
     </table>
     <div class="row small-btns"><button class="btn sm" data-addset="${i}">+ Set</button>${e.sets.length > 1 ? `<button class="btn sm" data-rmset="${i}">− Set</button>` : ""}</div>
-  </article>`;
+    <label class="lbl ex-note-lbl" for="enote-${i}">Comment</label>
+    <textarea id="enote-${i}" data-enote="${i}" rows="2" placeholder="How did it feel? Pain, machine taken, form cue">${esc(e.notes || "")}</textarea>
+  </article>
+  ${logNav(i, d.entries.length)}`;
+}
+
+function reviewScreen(d) {
+  const p = logProgress(d);
+  const rows = d.entries.map((e, i) => {
+    const ex = EXERCISES[e.exId];
+    const done = Logic.workSets(e).length, plan = e.target.sets;
+    return `<button class="rev-row" data-goto="${i}">
+      <span class="idx mono">${two(i + 1)}</span>
+      <span class="rev-main"><b>${esc(ex.name)}</b><span class="small muted">${esc(Logic.fmtSets(e)) || "No sets logged"}</span>${e.notes ? `<span class="small ex-note">${esc(e.notes)}</span>` : ""}</span>
+      <span class="mono ${done >= plan ? "up" : "warn-text"}">${done}/${plan} sets</span>
+    </button>`;
+  }).join("");
+  return `<p class="small muted">${p.done < p.total ? `${p.total - p.done} set${p.total - p.done > 1 ? "s" : ""} without reps will not be saved. ` : ""}Tap an exercise to change it.</p>
+    <section class="panel review">${rows}</section>
+    <section class="panel">
+      <label class="lbl" for="notes">Notes · sleep, energy, pain, busy gym</label>
+      <textarea id="notes" data-notes rows="3">${esc(d.notes)}</textarea>
+    </section>
+    <button class="btn danger full" data-act="discard">${d.editingId ? "Cancel edit" : "Discard workout"}</button>
+    <div class="lognav stick">
+      <button class="btn big" data-nav="back">← Back</button>
+      <button class="btn acc big" data-act="finish">${d.editingId ? "Save changes" : "Finish workout"} ✓</button>
+    </div>`;
+}
+
+function openHowto(i) {
+  const ex = EXERCISES[Store.db.draft.entries[i].exId];
+  modal.innerHTML = `<div class="sheet" role="dialog" aria-label="How to do ${esc(ex.name)}">
+    <div class="mono muted">How to</div>
+    <h3>${esc(ex.name)}</h3>
+    ${howto(ex)}
+    <button class="btn full" data-act="close">Close</button>
+  </div>`;
+  modal.classList.remove("hidden");
 }
 
 function tickSet(i, k) {
@@ -374,6 +598,8 @@ function tickSet(i, k) {
     s.done = true;
     d.restAt = Date.now();
     d.restEx = EXERCISES[e.exId].name;
+    d.restFor = restSeconds(e.exId);
+    Device.cue("set");
   } else {
     s.done = false;
   }
@@ -403,6 +629,7 @@ function finishWorkout() {
       exId: e.exId,
       target: e.target,
       sets: e.sets.filter((s) => num(s.reps) > 0).map((s) => ({ kg: num(s.kg), reps: num(s.reps), rir: s.rir === "" ? "" : num(s.rir) })),
+      notes: (e.notes || "").trim(),
     })),
   };
   const idx = db.sessions.findIndex((s) => s.id === session.id);
@@ -461,20 +688,29 @@ function closeModal() {
 function updateRest() {
   const d = Store.db.draft;
   const onLog = location.hash.startsWith("#/log");
-  if (!d || !d.restAt || !onLog) {
+  const secs = d && d.restAt ? Math.floor((Date.now() - d.restAt) / 1000) : 0;
+  const show = !!(d && d.restAt && onLog && secs <= 600);
+  document.body.classList.toggle("resting", show);
+  if (!show) {
     restBar.classList.add("hidden");
     return;
   }
-  const secs = Math.floor((Date.now() - d.restAt) / 1000);
-  if (secs > 600) {
-    restBar.classList.add("hidden");
-    return;
+  const target = d.restFor || 120;
+  const done = secs >= target;
+  if (done && restCued !== d.restAt) {
+    restCued = d.restAt;
+    if (secs < target + 5) Device.cue("rest");
   }
-  const m = Math.floor(secs / 60), s = two(secs % 60);
-  const hint = secs >= 180 ? "Big lifts: go" : secs >= 90 ? "Small lifts: go" : "Rest";
-  restBar.innerHTML = `<span><b>${m}:${s}</b><span class="small">${esc(d.restEx || "")}</span></span><span class="mono">${hint}</span>`;
+  const clock = (n) => `${Math.floor(n / 60)}:${two(n % 60)}`;
+  restBar.classList.toggle("done", done);
+  restBar.innerHTML = `<span><b>${clock(secs)}</b><span class="small">${esc(d.restEx || "")}</span></span><span class="mono">${done ? "Rest done · go" : `Rest ${clock(target)}`}</span>`;
   restBar.classList.remove("hidden");
 }
+
+/* Big compound lifts get 3 minutes, smaller lifts 90 seconds. */
+const COMPOUND = ["chest-press", "shoulder-press", "row", "lat", "squat", "single-leg", "hinge"];
+const restSeconds = (exId) => (COMPOUND.includes(EXERCISES[exId].group) ? 180 : 90);
+let restCued = null;
 setInterval(updateRest, 1000);
 
 /* ---------- Summary ---------- */
@@ -503,6 +739,21 @@ function isPR(entry, session) {
     });
   });
   return !!best && (cur.e || cur.reps) > (best.e || best.reps) + 0.01;
+}
+
+/* Stable per session, so a reload shows the same fact. */
+function workoutFact(id) {
+  let h = 0;
+  for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return WORKOUT_FACTS[h % WORKOUT_FACTS.length];
+}
+
+/* The level reached by this workout, if it was the one that crossed a threshold. */
+function levelUpFor(s) {
+  const k = Store.finishedSessions().findIndex((x) => x.id === s.id);
+  if (k < 0) return null;
+  const before = trainingLevel(k), after = trainingLevel(k + 1);
+  return after.i > before.i ? after : null;
 }
 
 function renderSummary(id) {
@@ -546,15 +797,24 @@ function renderSummary(id) {
   if (st.minutes > 100) tips.push(`This session took ${st.minutes} min. Rest 2-3 min on big lifts and 1-2 min on small lifts.`);
   rows.filter((r) => r.cmp.verdict !== "skip").slice(0, 3).forEach((r) => tips.push(`${r.ex.name}: ${r.sug.text}`));
 
+  const levelUp = levelUpFor(s);
+  const fact = workoutFact(s.id);
   const verdictLabel = { up: "Better", heavier: "Heavier", same: "Same", down: "Lower", new: "New", skip: "Skipped" };
 
   app.innerHTML = `
     <section class="hero">
       <div class="meta mono"><span>${esc(day.name)} · ${fmtDate(s.date)}</span><span>${st.minutes ? st.minutes + " min" : ""}</span></div>
-      <h1 class="display complete kinetic"><span class="outline">Quest</span><br>Complete</h1>
+      <h1 class="display complete kinetic"><span class="outline">Workout</span><br>Complete</h1>
       <p class="headline">${esc(headline)}</p>
-      ${prs ? `<p class="mono up">${prs} new PR${prs > 1 ? "s" : ""} · level up</p>` : ""}
+      ${prs ? `<p class="mono up">${prs} new PR${prs > 1 ? "s" : ""}</p>` : ""}
     </section>
+    ${levelUp ? `<section class="panel framed levelup" role="status">
+      <div class="mono">Level up</div>
+      <h3>${esc(levelUp.cur.name)}</h3>
+      <p class="small">${esc(levelUp.cur.text)}</p>
+      <div class="bar"><i></i></div>
+      <a class="link" href="#/levels">See all levels</a>
+    </section>` : ""}
 
     ${label(`(01) vs last ${esc(day.name)}`, prevS ? `${fmtDate(prevS.date)} · ${agoText(prevS.date)}` : "first time")}
     <div class="stats" data-reveal>
@@ -573,12 +833,19 @@ function renderSummary(id) {
         <div class="small"><span class="mono muted">Today</span> ${esc(Logic.fmtSets(r.e)) || "–"} ${best ? `<span class="muted">· ${best}</span>` : ""}</div>
         ${r.prev ? `<div class="small muted"><span class="mono">Last · ${fmtDate(r.prev.session.date)}</span> ${esc(Logic.fmtSets(r.prev.entry))}</div>` : ""}
         ${change ? `<div class="small mono" style="margin-top:6px">${change}</div>` : ""}
+        ${r.e.notes ? `<p class="small ex-note">${esc(r.e.notes)}</p>` : ""}
         ${c.verdict !== "skip" ? `<div class="next"><b>Next time</b>${esc(r.sug.text)}</div>` : ""}
       </article>`;
     }).join("")}
 
     ${label("(03) Make the next one better")}
     <section class="panel accent" data-reveal><ul class="tips">${tips.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></section>
+
+    <section class="panel framed dyk" data-reveal>
+      <div class="mono fact-label">Did you know</div>
+      <p>${esc(fact.text)}</p>
+      <p class="source">Source: ${esc(fact.source)}</p>
+    </section>
 
     ${label("(04) This week", "vs last week")}
     ${weekStats()}
@@ -595,8 +862,8 @@ function editSession(id) {
   if (!s) return;
   if (db.draft && !confirm("A workout is in progress. Replace it with this edit?")) return;
   db.draft = {
-    id: s.id, editingId: s.id, dayId: s.dayId, date: s.date, finishedAt: s.finishedAt, notes: s.notes || "",
-    entries: s.entries.map((e) => ({ ...e, sets: e.sets.map((x) => ({ kg: String(x.kg), reps: String(x.reps), rir: x.rir === "" ? "" : String(x.rir), done: true })) })),
+    id: s.id, editingId: s.id, dayId: s.dayId, date: s.date, finishedAt: s.finishedAt, notes: s.notes || "", current: 0,
+    entries: s.entries.map((e) => ({ ...e, notes: e.notes || "", sets: e.sets.map((x) => ({ kg: String(x.kg), reps: String(x.reps), rir: x.rir === "" ? "" : String(x.rir), done: true })) })),
   };
   Store.save();
   location.hash = "#/log";
@@ -620,10 +887,11 @@ function renderHistory() {
     ${groups.map((g) => `${label(`Week of ${fmtWeek(g.wk)}`, `${g.items.length} workout${g.items.length > 1 ? "s" : ""}`)}
       ${g.items.map((s) => {
         const st = Logic.sessionStats(s);
-        return `<a class="hist" href="#/summary/${s.id}" data-reveal><span><span class="name">${esc(PROGRAM.days[s.dayId].name)}</span><br><span class="mono muted">${fmtDate(s.date)}</span></span><span class="r mono">${st.sets} sets<br>${fmtInt(st.volume)} kg ↗</span></a>`;
+        const notes = s.entries.filter((e) => e.notes).length;
+        return `<a class="hist" href="#/summary/${s.id}" data-reveal><span><span class="name">${esc(PROGRAM.days[s.dayId].name)}</span><br><span class="mono muted">${fmtDate(s.date)}${notes ? ` · ${notes} comment${notes > 1 ? "s" : ""}` : ""}</span></span><span class="r mono">${st.sets} sets<br>${fmtInt(st.volume)} kg ↗</span></a>`;
       }).join("")}`).join("")}
     ${label("Backup", lb ? "last " + agoText(lb) : "never backed up")}
-    <section class="panel sys" data-reveal>
+    <section class="panel framed" data-reveal>
       ${Store.account
         ? `<p class="small">Your log syncs to your account and stays available offline on this device. Export a file backup any time. Importing adds the file to your account.</p>`
         : `<p class="small">Your log is saved only in this browser on this device. If you clear browser data, the log is gone. Export a backup every 1-2 weeks.${Sync.enabled ? ` Or <a class="link" href="#/account">sign in</a> to sync it.` : ""}</p>`}
@@ -641,7 +909,7 @@ function exportBackup() {
   const blob = new Blob([Store.exportJson()], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `jin-woo-gym-backup-${Logic.ymd(new Date())}.json`;
+  a.download = `beyond-training-backup-${Logic.ymd(new Date())}.json`;
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
@@ -679,7 +947,7 @@ function lineChart(points, unit) {
   const path = points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.y).toFixed(1)}`).join(" ");
   const area = `${path} L${x(points.length - 1).toFixed(1)},${H - P + 6} L${x(0).toFixed(1)},${H - P + 6} Z`;
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Progress chart">
-    <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e4ff3a"/><stop offset="1" stop-color="#e4ff3a" stop-opacity="0"/></linearGradient></defs>
+    <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent);stop-opacity:0"/></linearGradient></defs>
     <text x="0" y="${y(max) + 3}" class="axis">${max.toFixed(0)}</text>
     <text x="0" y="${y(min) + 3}" class="axis">${min.toFixed(0)}</text>
     <line x1="${P}" y1="${y(max)}" x2="${W}" y2="${y(max)}" class="grid"/>
@@ -731,7 +999,7 @@ function renderProgress(arg) {
     <h1 class="display page-title kinetic">Stats</h1>
 
     ${label("(01) Exercise progress", bw ? "total reps" : "est. 1RM kg")}
-    <section class="panel sys" data-reveal>
+    <section class="panel framed" data-reveal>
       <select id="ex-pick" class="full">${exIds.map((id) => `<option value="${id}" ${id === sel ? "selected" : ""}>${esc(EXERCISES[id].name)}</option>`).join("")}</select>
       <div style="display:flex;justify-content:space-between;align-items:end;margin-top:14px">
         <div><div class="bignum" data-count="${lastP.y}" data-fmt="1">0</div><div class="mono muted">${bw ? "reps" : "kg est. 1RM"} · latest</div></div>
@@ -750,7 +1018,7 @@ function renderProgress(arg) {
 
     ${label("(02) Week by week", "volume vs previous")}
     <section class="panel" data-reveal>
-      <table class="mini"><thead><tr><th>Week of</th><th class="r">Quests</th><th class="r">Sets</th><th class="r">Volume</th><th class="r">Δ</th></tr></thead><tbody>
+      <table class="mini"><thead><tr><th>Week of</th><th class="r">Workouts</th><th class="r">Sets</th><th class="r">Volume</th><th class="r">Δ</th></tr></thead><tbody>
         ${totals.map((w, i) => {
           const p = Logic.pct(w.t.volume, prevOf(i).volume);
           return `<tr><td>${fmtWeek(w.k)}${i === 0 ? " <span class='mono up'>now</span>" : ""}</td><td class="r">${w.t.sessions}</td><td class="r">${w.t.sets}</td><td class="r">${fmtInt(w.t.volume)}</td><td class="r ${deltaCls(p)}">${pctText(p)}</td></tr>`;
@@ -800,7 +1068,7 @@ function renderBody() {
     </div>
 
     ${label("(02) 14-day rule", dec.rule ? `row #${dec.rule} · page 6` : "")}
-    <section class="panel sys decision d-${dec.action}" data-reveal>
+    <section class="panel framed decision d-${dec.action}" data-reveal>
       <h3>${esc(dec.title)}</h3>
       <p class="small">${esc(dec.text)}</p>
       <div class="row">${applyHtml}</div>
@@ -811,12 +1079,12 @@ function renderBody() {
       <p class="small muted">Weigh every morning after the bathroom and before food. Average the week.</p>
       <form id="checkin" class="form">
         <label>Week (any day in it)<input type="date" name="week" value="${Logic.weekStart()}" required></label>
-        <label>Avg weight kg<input type="number" step="0.01" inputmode="decimal" name="weight" required></label>
-        <label>Waist at navel cm<input type="number" step="0.1" inputmode="decimal" name="waist"></label>
-        <label>Avg kcal<input type="number" step="1" inputmode="numeric" name="kcal"></label>
-        <label>Avg protein g<input type="number" step="1" inputmode="numeric" name="protein"></label>
-        <label>Avg steps<input type="number" step="1" inputmode="numeric" name="steps"></label>
-        <label>Avg sleep h<input type="number" step="0.1" inputmode="decimal" name="sleep"></label>
+        <label>Avg weight kg<input type="number" step="0.01" inputmode="decimal" enterkeyhint="next" name="weight" required></label>
+        <label>Waist at navel cm<input type="number" step="0.1" inputmode="decimal" enterkeyhint="next" name="waist"></label>
+        <label>Avg kcal<input type="number" step="1" inputmode="numeric" enterkeyhint="next" name="kcal"></label>
+        <label>Avg protein g<input type="number" step="1" inputmode="numeric" enterkeyhint="next" name="protein"></label>
+        <label>Avg steps<input type="number" step="1" inputmode="numeric" enterkeyhint="next" name="steps"></label>
+        <label>Avg sleep h<input type="number" step="0.1" inputmode="decimal" enterkeyhint="next" name="sleep"></label>
         <label class="check"><input type="checkbox" name="creatine"> In the first 4 weeks of creatine</label>
         <label class="check"><input type="checkbox" name="perfDown"> Gym performance or energy clearly falling</label>
         <label class="wide">Notes<textarea name="notes" rows="2"></textarea></label>
@@ -869,6 +1137,36 @@ function saveCheckin(form) {
 
 /* ---------- Plan ---------- */
 
+function weekEditor() {
+  const s = Store.db.settings;
+  const tk = Logic.dayKey(new Date());
+  const train = Store.DAYS.filter((k) => s.week[k]).length;
+  return `<section class="panel framed myweek" data-reveal>
+    ${Store.DAYS.map((k) => {
+      const id = s.week[k];
+      return `<div class="wk-row${k === tk ? " today" : ""}${id ? "" : " off"}">
+        <label class="wk-day" for="wk-${k}"><b>${DAY_NAMES[k]}</b>${k === tk ? `<span class="mono up">Today</span>` : ""}</label>
+        <select id="wk-${k}" data-week="${k}">${PROGRAM.order.map((o) => `<option value="${o}" ${o === id ? "selected" : ""}>${esc(PROGRAM.days[o].name)}</option>`).join("")}<option value="" ${id ? "" : "selected"}>Rest</option></select>
+        ${id
+          ? `<span class="wk-info small muted">${esc(PROGRAM.days[id].focus)}</span>`
+          : `<input class="wk-info" data-restlabel="${k}" value="${esc(s.restLabels[k] || "")}" placeholder="Rest note, e.g. badminton" aria-label="${DAY_NAMES[k]} rest note" maxlength="40">`}
+      </div>`;
+    }).join("")}
+    <p class="small muted">${train} training day${train === 1 ? "" : "s"}, ${7 - train} rest day${train === 6 ? "" : "s"}. The Train tab shows the workout for today.${Store.account ? " Synced to your account." : ""}</p>
+  </section>`;
+}
+
+function feedbackPrefs() {
+  const s = Store.db.settings;
+  const toggle = (key, on, text, note) => `<label class="toggle"><input type="checkbox" data-pref="${key}" ${on ? "checked" : ""}><span><b>${text}</b><span class="small muted">${note}</span></span></label>`;
+  return `<section class="panel" data-reveal>
+    ${Device.canVibrate
+      ? toggle("vibrate", s.vibrate !== false, "Vibrate", "Short pulse when you tick a set and when the rest time is up.")
+      : `<p class="small muted">This phone does not support vibration. The rest bar turns white when the rest time is up.</p>`}
+    ${toggle("sound", !!s.sound, "Sound when rest is done", "A short beep. Plays only after you have tapped in the app.")}
+  </section>`;
+}
+
 function renderPlan(tab) {
   tab = tab === "diet" ? "diet" : "training";
   const sub = `<div class="subtabs"><a href="#/plan/training" class="${tab === "training" ? "active" : ""}">Training</a><a href="#/plan/diet" class="${tab === "diet" ? "active" : ""}">Diet</a></div>`;
@@ -877,10 +1175,10 @@ function renderPlan(tab) {
       <h1 class="display page-title kinetic">Plan</h1>${sub}
       ${label("(00) The split", "S+ in Nippard's split tier list")}
       <p class="small">Upper / lower + push / pull / legs. Each muscle gets about 2 sessions a week. Move the days to fit badminton. Do not put Legs the day before a long badminton session.</p>
-      <div class="week-strip" data-reveal>${PROGRAM.exampleWeek.map(([d, w]) => {
-        const train = !/rest/i.test(w);
-        return `<div class="${train ? "train" : "rest-day"}"><span class="mono">${d}</span><b>${esc(train ? w : "Rest")}</b></div>`;
-      }).join("")}</div>
+      ${label("My week", "pick a workout or rest")}
+      ${weekEditor()}
+      ${label("Workout feedback", "vibration and sound")}
+      ${feedbackPrefs()}
       <p class="small muted">When every set reaches the top of the rep range, add the smallest weight jump next time. The app calculates this for you.</p>
       ${PROGRAM.order.map((id, n) => {
         const d = PROGRAM.days[id];
@@ -899,7 +1197,7 @@ function renderPlan(tab) {
         </section>`;
       }).join("")}
       <section class="panel small muted" data-reveal>
-        <p><b class="up">Badges.</b> S+, S and A are ranks from Jeff Nippard's exercise tier lists. "Nippard pick" means his first or backup choice for that muscle in his book. No badge means a standard exercise that is not from his S/A lists.</p>
+        <p><b class="up">Badges.</b> S+, S and A are tiers from Jeff Nippard's exercise tier lists. "Nippard pick" means his first or backup choice for that muscle in his book. No badge means a standard exercise that is not from his S/A lists.</p>
         <p><b class="up">RIR.</b> Reps in reserve: how many more reps you could do. RIR 0 = no more reps possible.</p>
         <p>Exercise images: <a href="https://github.com/yuhonas/free-exercise-db" target="_blank" rel="noopener">free-exercise-db</a> (public domain).</p>
       </section>
@@ -930,7 +1228,7 @@ function renderPlan(tab) {
         <table class="mini"><tbody>${DIET.rules.map(([a, b], i) => `<tr><td class="mono">${two(i + 1)}</td><td class="small"><b>${esc(a)}</b></td><td class="small">${esc(b)}</td></tr>`).join("")}</tbody></table>
         <p class="small"><b>Floor rule:</b> do not automatically cut below ~2,200 kcal. The Body tab applies these rules for you.</p>
       </section>
-      <a class="cta" href="assets/Jin_Woo_Diet_Protocol_Tarun_v2.1.pdf" target="_blank" rel="noopener"><span>Full diet PDF</span><span class="arrow">↗</span></a>
+      <a class="cta" href="assets/Beyond_Training_Diet_Protocol_v2.1.pdf" target="_blank" rel="noopener"><span>Full diet PDF</span><span class="arrow">↗</span></a>
       ${foot()}
     `;
   }
@@ -946,6 +1244,19 @@ app.addEventListener("input", (ev) => {
     Store.save();
     return;
   }
+  if (t.dataset.enote !== undefined && d) {
+    d.entries[+t.dataset.enote].notes = t.value;
+    Store.save();
+    return;
+  }
+  if (t.dataset.restlabel) {
+    const labels = Store.db.settings.restLabels;
+    const v = t.value.trim();
+    if (v) labels[t.dataset.restlabel] = v;
+    else delete labels[t.dataset.restlabel];
+    Store.save();
+    return;
+  }
   if (t.dataset.f && d) {
     const s = d.entries[+t.dataset.i].sets[+t.dataset.k];
     s[t.dataset.f] = t.value;
@@ -957,6 +1268,21 @@ app.addEventListener("input", (ev) => {
 app.addEventListener("change", (ev) => {
   const t = ev.target;
   if (t.id === "ex-pick") location.hash = "#/progress/" + t.value;
+  if (t.dataset.pref) {
+    Store.db.settings[t.dataset.pref] = t.checked;
+    Store.save();
+    if (t.dataset.pref === "sound" && t.checked) {
+      Device.unlockAudio();
+      Device.beep();
+    }
+    if (t.dataset.pref === "vibrate" && t.checked) Device.cue("set");
+    return;
+  }
+  if (t.dataset.week) {
+    Store.db.settings.week[t.dataset.week] = t.value || null;
+    Store.save();
+    rerender();
+  }
   if (t.id === "import-file" && t.files[0]) importBackup(t.files[0]);
 });
 
@@ -973,11 +1299,14 @@ function toggleHowto(id) {
 }
 
 app.addEventListener("click", (ev) => {
+  Device.unlockAudio();
   const b = ev.target.closest("button, a");
   if (!b) return;
   const ds = b.dataset;
   if (ds.start) return startWorkout(ds.start);
-  if (ds.howto !== undefined) return toggleHowto("howto-" + ds.howto);
+  if (ds.goto !== undefined) return goTo(+ds.goto);
+  if (ds.nav && Store.db.draft) return goTo(logIndex(Store.db.draft) + (ds.nav === "next" ? 1 : -1));
+  if (ds.howto !== undefined) return openHowto(+ds.howto);
   if (ds.planhow !== undefined) return toggleHowto("planhow-" + ds.planhow);
   if (ds.swap !== undefined) return openSwap(+ds.swap);
   if (ds.tick) {
@@ -1013,6 +1342,14 @@ app.addEventListener("click", (ev) => {
     return rerender();
   }
   switch (ds.act) {
+    case "fact": {
+      factShift++;
+      const el = document.getElementById("fact-text");
+      if (el) el.textContent = factText();
+      return;
+    }
+    case "install": return Device.install();
+    case "install-dismiss": return Device.dismissInstall();
     case "finish": return finishWorkout();
     case "discard": return discardDraft();
     case "export": return exportBackup();
@@ -1035,6 +1372,64 @@ modal.addEventListener("click", (ev) => {
     return pickSwap(+i, id);
   }
   if (b.dataset.act === "close") closeModal();
+});
+
+/* Swipes and arrow keys move between exercises. Gestures that start in a field or the set table are left alone. */
+let swipe = null;
+app.addEventListener("touchstart", (ev) => {
+  const t = ev.touches[0];
+  swipe = currentView() === "log" && ev.touches.length === 1 && !ev.target.closest("input, textarea, select, table, .dots")
+    ? { x: t.clientX, y: t.clientY, at: Date.now() } : null;
+}, { passive: true });
+/* Claiming a horizontal swipe stops Chrome's swipe-to-go-back from also firing. */
+app.addEventListener("touchmove", (ev) => {
+  if (!swipe || ev.touches.length !== 1) return;
+  const t = ev.touches[0];
+  const dx = Math.abs(t.clientX - swipe.x), dy = Math.abs(t.clientY - swipe.y);
+  if (dx > 10 && dx > dy * 1.5 && ev.cancelable) ev.preventDefault();
+}, { passive: false });
+app.addEventListener("touchend", (ev) => {
+  const s = swipe, d = Store.db.draft;
+  swipe = null;
+  if (!s || !d) return;
+  const t = ev.changedTouches[0];
+  const dx = t.clientX - s.x, dy = t.clientY - s.y;
+  if (Date.now() - s.at > 800 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+  goTo(logIndex(d) + (dx < 0 ? 1 : -1));
+}, { passive: true });
+
+/* Enter ("next" on phone keyboards) walks kg → reps → next set. */
+app.addEventListener("keydown", (ev) => {
+  const t = ev.target;
+  if (ev.key !== "Enter" || t.tagName !== "INPUT" || !t.dataset.f) return;
+  ev.preventDefault();
+  const fields = [...app.querySelectorAll("table.sets input[data-f]")];
+  const next = fields[fields.indexOf(t) + 1];
+  if (next) next.focus();
+  else t.blur();
+});
+
+/* While the phone keyboard is open, the bottom bars step aside and the active set row stays in view. */
+const coarse = matchMedia("(pointer: coarse)");
+app.addEventListener("focusin", (ev) => {
+  const t = ev.target;
+  if (!coarse.matches || !/^(INPUT|TEXTAREA)$/.test(t.tagName) || t.type === "checkbox") return;
+  document.body.classList.add("kb");
+  setTimeout(() => {
+    if (document.activeElement === t) (t.closest("tr") || t).scrollIntoView({ block: "center" });
+  }, 350);
+});
+app.addEventListener("focusout", () => setTimeout(() => {
+  if (!isTyping()) document.body.classList.remove("kb");
+}, 120));
+
+document.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape" && !modal.classList.contains("hidden")) return closeModal();
+  if ((ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") || ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey) return;
+  const a = document.activeElement;
+  if (currentView() !== "log" || !Store.db.draft || !modal.classList.contains("hidden") || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return;
+  ev.preventDefault();
+  goTo(logIndex(Store.db.draft) + (ev.key === "ArrowRight" ? 1 : -1));
 });
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
@@ -1062,6 +1457,8 @@ function refreshFromSync() {
 }
 app.addEventListener("focusout", () => setTimeout(() => refreshDue && refreshFromSync(), 300));
 modal.addEventListener("click", () => setTimeout(() => refreshDue && refreshFromSync(), 300));
+
+Device.onInstallChange(() => currentView() === "train" && !isTyping() && rerender());
 
 Sync.on("status", () => {
   renderTopRight(currentView());

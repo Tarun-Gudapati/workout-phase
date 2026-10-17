@@ -1,9 +1,9 @@
 /* Network first, cache fallback: the app keeps working in a gym with no signal.
    Cross-origin requests (Supabase API and auth) are never touched, so account data is never cached here. */
-const CACHE = "jw-gym-v3";
+const CACHE = "bt-v5";
 const CORE = [
-  "./", "index.html", "css/fonts.css", "css/style.css", "manifest.webmanifest", "icon.svg",
-  "js/data.js", "js/config.js", "js/vendor/supabase.js", "js/store.js", "js/logic.js", "js/sync.js", "js/account.js", "js/coach.js", "js/app.js",
+  "./", "index.html", "css/fonts.css", "css/style.css", "manifest.webmanifest", "icon.svg", "icon-192.png", "apple-touch-icon.png",
+  "js/data.js", "js/muscles.js", "js/config.js", "js/vendor/supabase.js", "js/store.js", "js/logic.js", "js/sync.js", "js/account.js", "js/coach.js", "js/device.js", "js/app.js",
   "fonts/BigShouldersDisplay-100_900.woff2", "fonts/InterTight-400_800.woff2", "fonts/JetBrainsMono-400.woff2", "fonts/JetBrainsMono-600.woff2",
 ];
 
@@ -11,6 +11,7 @@ self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
 
+/* Every other cache on this origin is an older version of this app (jw-gym-*, bt-*). */
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())

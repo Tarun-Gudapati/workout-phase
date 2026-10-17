@@ -8,6 +8,31 @@ const Store = (() => {
   const FIELDS = ["draft", "swaps", "settings"];
   const cfg = window.APP_CONFIG || {};
   const cloud = !!(cfg.supabaseUrl && cfg.supabaseAnonKey && window.supabase);
+  const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+  /* settings.week maps each weekday to a PROGRAM day id, or null for rest. restLabels holds optional rest-day notes. */
+  function exampleWeek() {
+    const week = {}, restLabels = {};
+    PROGRAM.exampleWeek.forEach(([d, w]) => {
+      const k = d.toLowerCase().slice(0, 3);
+      const id = Object.keys(PROGRAM.days).find((x) => PROGRAM.days[x].name === w);
+      week[k] = id || null;
+      const note = id ? "" : w.replace(/^rest\s*\/?\s*/i, "");
+      if (note) restLabels[k] = note[0].toUpperCase() + note.slice(1);
+    });
+    return { week, restLabels };
+  }
+
+  function normSettings(s) {
+    const src = s && typeof s === "object" ? s : {};
+    const out = { ...empty().settings, ...src };
+    const def = exampleWeek();
+    const w = src.week && typeof src.week === "object" ? src.week : null;
+    const l = src.restLabels && typeof src.restLabels === "object" ? src.restLabels : w ? {} : def.restLabels;
+    out.week = Object.fromEntries(DAYS.map((k) => [k, w ? (PROGRAM.order.includes(w[k]) ? w[k] : null) : def.week[k]]));
+    out.restLabels = Object.fromEntries(DAYS.filter((k) => typeof l[k] === "string" && l[k]).map((k) => [k, l[k]]));
+    return out;
+  }
 
   const empty = () => ({
     version: 1,
@@ -15,7 +40,7 @@ const Store = (() => {
     checkins: [],
     draft: null,
     swaps: {},
-    settings: { kcal: DIET.kcalStart, lastBackup: null },
+    settings: { kcal: DIET.kcalStart, lastBackup: null, vibrate: true, sound: false, ...exampleWeek() },
   });
 
   const emptyMeta = () => ({
@@ -37,7 +62,7 @@ const Store = (() => {
       sessions: Array.isArray(d.sessions) ? d.sessions : [],
       checkins: Array.isArray(d.checkins) ? d.checkins : [],
       swaps: d.swaps && typeof d.swaps === "object" ? d.swaps : {},
-      settings: { ...base.settings, ...(d.settings || {}) },
+      settings: normSettings(d.settings),
     };
   }
 
@@ -163,13 +188,13 @@ const Store = (() => {
     if (!db.draft && src.draft) db.draft = src.draft;
     const fresh = (f) => overwrite || !meta.state[f];
     db.swaps = fresh("swaps") ? { ...db.swaps, ...src.swaps } : { ...src.swaps, ...db.swaps };
-    db.settings = fresh("settings") ? { ...db.settings, ...src.settings } : { ...src.settings, ...db.settings };
+    db.settings = normSettings(fresh("settings") ? { ...db.settings, ...src.settings } : { ...src.settings, ...db.settings });
     FIELDS.forEach((f) => (shadow[f] = undefined));
   }
 
   function importJson(text) {
     const d = JSON.parse(text);
-    if (!d || !Array.isArray(d.sessions)) throw new Error("This file is not a Jin-Woo gym backup.");
+    if (!d || !Array.isArray(d.sessions)) throw new Error("This file is not a Beyond Training backup.");
     if (account) mergeIn(d, true);
     else db = normalize(d);
     save();
@@ -344,7 +369,7 @@ const Store = (() => {
       meta.state[f] = r;
       if (f === "draft") db.draft = row.draft || null;
       else if (f === "swaps") db.swaps = row.swaps && typeof row.swaps === "object" ? row.swaps : {};
-      else db.settings = { ...empty().settings, ...(row.settings || {}) };
+      else db.settings = normSettings(row.settings);
       shadow[f] = JSON.stringify(db[f]);
       changed = true;
     });
@@ -367,7 +392,7 @@ const Store = (() => {
   return {
     get db() { return db; },
     get account() { return account; },
-    cloud,
+    cloud, DAYS,
     save, uid, finishedSessions, exportJson, importJson, reset,
     useAccount, forget, localData, adoptLocal, flag,
     pendingCount, pending, markPushed, markStatePushed, applyRemote, applyRemoteState, cursor, setCursor, onSave,
