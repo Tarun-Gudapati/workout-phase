@@ -72,12 +72,23 @@ function stat(value, label, delta, fmt = "int") {
   return `<div class="stat"><div class="n">${fmtNum(value, fmt)}</div><span class="mono">${label}</span>${delta === undefined ? "" : `<div class="d ${deltaCls(delta)}">${pctText(delta)}</div>`}</div>`;
 }
 
+/* Ring colours: start and end of the gradient. Tracks use the start colour at low opacity. */
+const TONES = {
+  move: ["#fa114f", "#ff6a3d"], lime: ["#92e82a", "#d4ff4f"], cyan: ["#1ee4e1", "#5ab8ff"], gold: ["#f5b83d", "#ffe08a"],
+  E: ["#9ca3af", "#e5e7eb"], D: ["#22c55e", "#86efac"], C: ["#06b6d4", "#67e8f9"], B: ["#8b5cf6", "#c4b5fd"], A: ["#f59e0b", "#fde68a"], S: ["#fa114f", "#ff6a3d"],
+};
+let ringId = 0;
+
 /* Progress ring. `pct` 0-100, `inner` is the HTML in the middle. */
-function ring(pct, inner, { size = "", color = "var(--accent)", width = 9 } = {}) {
-  const r = 50 - width / 2 - 1, c = 2 * Math.PI * r;
+function ring(pct, inner, { size = "", tone = "move", width = 10 } = {}) {
+  const [c1, c2] = TONES[tone] || TONES.move;
+  const id = "rg" + ++ringId;
+  const r = 50 - width / 2 - 2, c = 2 * Math.PI * r;
   const p = Math.max(0, Math.min(100, pct || 0));
-  return `<div class="ring ${size}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="${r}" stroke-width="${width}"/>
-    <circle class="val" cx="50" cy="50" r="${r}" stroke-width="${width}" stroke="${color}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - p / 100)).toFixed(1)}"${p ? "" : ' style="display:none"'}/></svg>
+  return `<div class="ring ${size}" style="--glow:${c1}"><svg viewBox="0 0 100 100" aria-hidden="true">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>
+    <circle class="track" cx="50" cy="50" r="${r}" stroke-width="${width}" stroke="${c1}"/>
+    <circle class="val" cx="50" cy="50" r="${r}" stroke-width="${width}" stroke="url(#${id})" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - p / 100)).toFixed(1)}"${p ? "" : ' style="display:none"'}/></svg>
     <div class="in"><div>${inner}</div></div></div>`;
 }
 
@@ -205,9 +216,9 @@ function homeRings(fin) {
   const planned = Store.DAYS.filter((k) => Store.db.settings.week[k]).length || 1;
   const setGoal = Math.max(prev.sets, 1);
   return `<a class="rings" href="#/ranks" aria-label="${R.cur.letter}-Rank. See all ranks">
-    <div class="ring-cell">${ring(R.pct, `<b class="letter">${R.cur.letter}</b>`)}<span class="cap"><b>${R.cur.letter}-Rank</b>${R.next ? `${R.toNext} to ${R.next.letter}` : "Top rank"}</span></div>
-    <div class="ring-cell">${ring((cur.sessions / planned) * 100, `<b>${cur.sessions}/${planned}</b>`, { color: "var(--ink)" })}<span class="cap"><b>This week</b>workouts</span></div>
-    <div class="ring-cell">${ring((cur.sets / setGoal) * 100, `<b>${cur.sets}</b>`, { color: "var(--good)" })}<span class="cap"><b>Hard sets</b>${prev.sets ? `last week ${prev.sets}` : "this week"}</span></div>
+    <div class="ring-cell">${ring(R.pct, `<b class="letter r-${R.cur.letter}">${R.cur.letter}</b>`, { tone: R.cur.letter })}<span class="cap"><b>${R.cur.letter}-Rank</b>${R.next ? `${R.toNext} to ${R.next.letter}` : "Top rank"}</span></div>
+    <div class="ring-cell">${ring((cur.sessions / planned) * 100, `<b>${cur.sessions}/${planned}</b>`, { tone: "lime" })}<span class="cap"><b>This week</b>workouts</span></div>
+    <div class="ring-cell">${ring((cur.sets / setGoal) * 100, `<b>${cur.sets}</b>`, { tone: "cyan" })}<span class="cap"><b>Hard sets</b>${prev.sets ? `last week ${prev.sets}` : "this week"}</span></div>
   </a>`;
 }
 
@@ -255,14 +266,14 @@ function renderRanks() {
     const state = i < R.i ? "done" : i === R.i ? "here" : "locked";
     const right = state === "done" ? "✓" : state === "here" ? "You" : `${rk.at - n} to go`;
     return `<li class="rung ${state}">
-      <span class="badge" aria-hidden="true">${rk.letter}</span>
+      <span class="badge r-${rk.letter}" aria-hidden="true">${rk.letter}</span>
       <div class="rung-body"><b>${rk.letter}-Rank · ${esc(rk.name)}</b><p class="small muted">${esc(rk.text)}</p></div>
       <span class="state">${right}</span>
     </li>`;
   }).reverse().join("");
   app.innerHTML = `
     <section class="panel rank-hero">
-      ${ring(R.pct, `<b class="letter">${R.cur.letter}</b>`, { size: "lg", width: 7 })}
+      ${ring(R.pct, `<b class="letter r-${R.cur.letter}">${R.cur.letter}</b>`, { size: "lg", width: 8, tone: R.cur.letter })}
       <h2>${R.cur.letter}-Rank · ${esc(R.cur.name)}</h2>
       <p class="muted">${R.next ? `${plural(R.toNext, "workout")} to ${R.next.letter}-Rank` : "Top rank reached"}</p>
     </section>
@@ -701,13 +712,13 @@ function renderSummary(id) {
 
   app.innerHTML = `
     <section class="panel done-hero">
-      ${ring(comparable ? (up / comparable) * 100 : 100, comparable ? `<b>${up}/${comparable}</b><span>better</span>` : `<b>✓</b>`, { color: "var(--good)" })}
+      ${ring(comparable ? (up / comparable) * 100 : 100, comparable ? `<b>${up}/${comparable}</b><span>better</span>` : `<b>✓</b>`, { tone: "lime" })}
       <h1>Workout complete</h1>
-      <p class="headline">${esc(headline)}${prs ? ` <b class="accent-text">${plural(prs, "new PR")}</b>` : ""}</p>
+      <p class="headline">${esc(headline)}${prs ? ` <b class="gold-text">${plural(prs, "new PR")}</b>` : ""}</p>
       <p class="mono" style="margin-top:6px">${esc(day.name)} · ${fmtDate(s.date)}${st.minutes ? ` · ${st.minutes} min` : ""}</p>
     </section>
     ${rankUp ? `<section class="panel rankup" role="status">
-      <div class="badge">${rankUp.cur.letter}</div>
+      <div class="badge r-${rankUp.cur.letter}">${rankUp.cur.letter}</div>
       <h3>Rank up · ${rankUp.cur.letter}-Rank</h3>
       <p class="small muted">${esc(rankUp.cur.name)}. ${esc(rankUp.cur.text)}</p>
       <a class="link" href="#/ranks">See ranks</a>
