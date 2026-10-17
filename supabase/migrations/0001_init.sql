@@ -201,9 +201,10 @@ as $$
 declare
   cap constant timestamptz := now() + interval '5 minutes';
 begin
-  new.draft_at := least(new.draft_at, cap);
-  new.swaps_at := least(new.swaps_at, cap);
-  new.settings_at := least(new.settings_at, cap);
+  -- least() ignores nulls, so clamp only stamps that are set.
+  if new.draft_at > cap then new.draft_at := cap; end if;
+  if new.swaps_at > cap then new.swaps_at := cap; end if;
+  if new.settings_at > cap then new.settings_at := cap; end if;
   if tg_op = 'UPDATE' then
     if new.draft_at is null or new.draft_at < coalesce(old.draft_at, '-infinity') then
       new.draft := old.draft;
@@ -364,4 +365,4 @@ grant execute on function public.my_coaches() to authenticated;
 grant execute on function public.my_athletes() to authenticated;
 
 -- Promote a coach (run as admin in the SQL editor):
---   update public.profiles set role = 'coach' where id = (select id from auth.users where email = 'coach@example.com');
+--   update public.profiles set role = 'coach' where id = (select id from auth.users where email = lower('coach@example.com'));
