@@ -1,6 +1,6 @@
 /* Network first, cache fallback: the app keeps working in a gym with no signal.
    Cross-origin requests (Supabase API and auth) are never touched, so account data is never cached here. */
-const CACHE = "bt-v5";
+const CACHE = "bt-v6";
 const CORE = [
   "./", "index.html", "css/fonts.css", "css/style.css", "manifest.webmanifest", "icon.svg", "icon-192.png", "apple-touch-icon.png",
   "js/data.js", "js/muscles.js", "js/config.js", "js/vendor/supabase.js", "js/store.js", "js/logic.js", "js/sync.js", "js/account.js", "js/coach.js", "js/device.js", "js/app.js",

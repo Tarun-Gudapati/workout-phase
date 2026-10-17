@@ -76,14 +76,14 @@ const Account = (() => {
     const tab = (m, t) => `<a href="#/account" data-acct-mode="${m}" class="${mode === m ? "active" : ""}">${t}</a>`;
     const s = Sync.status();
     root.innerHTML = `
-      <h1 class="display page-title kinetic">Account</h1>
-      ${s.signedIn ? `<section class="panel warn" data-reveal><b>Signed out.</b> <span class="small muted">${esc(statusLine())}</span></section>` : ""}
-      <p class="small muted">An account backs up your log and syncs it between your devices. The app still works offline in the gym.</p>
+      <h1 class="page-title">Account</h1>
+      ${s.signedIn ? `<section class="panel warn"><b>Signed out.</b> <span class="small muted">${esc(statusLine())}</span></section>` : ""}
+      <p class="small muted">Sign in to sync with your PT and your other devices. Works offline either way.</p>
       <div class="subtabs">${tab("signin", "Sign in")}${tab("signup", "Create account")}</div>
-      <section class="panel framed" data-reveal>${authForm()}${msgHtml()}</section>
+      <section class="panel framed">${authForm()}${msgHtml()}</section>
       ${!Store.account ? `${label("Or")}
-        <section class="panel" data-reveal>
-          <p class="small">Keep the log only in this browser, like before. You can sign in later and upload it.</p>
+        <section class="panel">
+          <p class="small">No account needed. You can sign in later.</p>
           <button class="btn full" data-acct="local">Continue on this device only</button>
         </section>` : ""}
     `;
@@ -91,22 +91,22 @@ const Account = (() => {
 
   function coachSection() {
     const p = Sync.profile;
-    const own = p && p.role === "coach" ? `<section class="panel accent" data-reveal>
-        <div class="mono">Your coach code</div><div class="bignum">${esc(p.coach_code)}</div>
-        <p class="small">Athletes enter this code here to share their log with you.</p>
-        <div class="row"><a class="btn primary" href="#/coach">Open coach view</a><button class="btn" data-acct="copy">Copy code</button></div>
+    const own = p && p.role === "coach" ? `<section class="panel accent">
+        <div class="eyebrow">Your PT code</div><div class="bignum">${esc(p.coach_code)}</div>
+        <p class="small">Clients enter this code to share their log with you.</p>
+        <div class="row"><a class="btn primary" href="#/coach">Open clients</a><button class="btn" data-acct="copy">Copy code</button></div>
       </section>` : "";
-    if (!navigator.onLine) return `${own}<section class="panel" data-reveal><p class="small muted">Connect to the internet to see or change your coach.</p></section>`;
+    if (!navigator.onLine) return `${own}<section class="panel"><p class="small muted">Connect to the internet to see or change your PT.</p></section>`;
     const c = coaches.uid === Store.account ? coaches : null;
     const list = !c || !c.list
       ? `<p class="small muted">${c && c.error ? esc(c.error) : "Loading…"}</p>`
       : c.list.length
-        ? c.list.map((x) => `<div class="cmp-head"><span><b>${esc(x.display_name || "Coach")}</b><br><span class="mono muted">since ${fmtDate(x.linked_at)}</span></span><button class="link danger-text" data-acct-unlink="${esc(x.coach_id)}">Unlink</button></div>`).join("")
-        : `<p class="small muted">No coach linked.</p>`;
-    return `${own}<section class="panel" data-reveal>
+        ? c.list.map((x) => `<div class="cmp-head"><span><b>${esc(x.display_name || "PT")}</b><br><span class="mono muted">since ${fmtDate(x.linked_at)}</span></span><button class="link danger-text" data-acct-unlink="${esc(x.coach_id)}">Unlink</button></div>`).join("")
+        : `<p class="small muted">No PT linked.</p>`;
+    return `${own}<section class="panel">
         ${list}
-        <form id="acct-join" class="form" style="margin-top:12px">${field("Coach code", "code", "text", `autocapitalize="characters" autocomplete="off" maxlength="12" required`)}${submit("Join coach", "")}</form>
-        <p class="small muted">A coach can see your workouts, check-ins and calorie target. They cannot change anything. Unlink any time.</p>
+        <form id="acct-join" class="form" style="margin-top:12px">${field("PT code", "code", "text", `autocapitalize="characters" autocomplete="off" maxlength="12" required`)}${submit("Link PT", "")}</form>
+        <p class="small muted">Your PT sees your workouts and check-ins, read only. Unlink any time.</p>
       </section>`;
   }
 
@@ -116,7 +116,7 @@ const Account = (() => {
     coaches = { uid, list: null, error: "", loading: true };
     Sync.myCoaches()
       .then((list) => (coaches = { uid, list, error: "" }))
-      .catch((e) => (coaches = { uid, list: null, error: e.message || "Could not load coaches." }))
+      .catch((e) => (coaches = { uid, list: null, error: e.message || "Could not load your PT." }))
       .then(() => {
         if (location.hash.startsWith("#/account") && Store.account === uid) render();
       });
@@ -126,21 +126,21 @@ const Account = (() => {
     const p = Sync.profile || {};
     const s = Sync.status();
     root.innerHTML = `
-      <h1 class="display page-title kinetic">Account</h1>
-      ${recovery ? `<section class="panel accent" data-reveal><h3>Set a new password</h3><form id="acct-pass" class="form">${newPassField()}${submit("Save password")}</form></section>` : ""}
-      ${label("(01) Signed in", STATE_TEXT[s.state])}
-      <section class="panel framed" data-reveal>
+      <h1 class="page-title">Account</h1>
+      ${recovery ? `<section class="panel accent"><h3>Set a new password</h3><form id="acct-pass" class="form">${newPassField()}${submit("Save password")}</form></section>` : ""}
+      ${label("Account", STATE_TEXT[s.state])}
+      <section class="panel framed">
         <div class="ex-name">${esc(p.display_name || "")}</div>
         <div class="mono muted">${esc(p.email || (Sync.user && Sync.user.email) || "")}</div>
         <p class="small" id="acct-status">${esc(statusLine())}</p>
         <div class="row"><button class="btn acc" data-acct="sync">Sync now</button><button class="btn" data-acct="signout">Sign out</button></div>
         ${msgHtml()}
       </section>
-      ${label("(02) Coach", p.role === "coach" ? "coach account" : "")}
+      ${label("Your PT", p.role === "coach" ? "PT account" : "")}
       ${coachSection()}
-      ${label("(03) Profile")}
-      <section class="panel" data-reveal>
-        <form id="acct-name" class="form">${field("Display name · coaches see this", "name", "text", `required value="${esc(p.display_name || "")}"`)}${submit("Save name", "")}</form>
+      ${label("Profile")}
+      <section class="panel">
+        <form id="acct-name" class="form">${field("Name · your PT sees this", "name", "text", `required value="${esc(p.display_name || "")}"`)}${submit("Save name", "")}</form>
         ${recovery ? "" : `<form id="acct-pass" class="form" style="margin-top:12px">${newPassField("Change password")}${submit("Save password", "")}</form>`}
       </section>
     `;
@@ -149,8 +149,8 @@ const Account = (() => {
 
   function render() {
     if (!Sync.enabled) {
-      root.innerHTML = `<h1 class="display page-title kinetic">Account</h1>
-        <section class="panel framed" data-reveal><p class="small">Cloud sync is not set up for this app. Your log is saved only in this browser on this device. Use Log → Export backup to move it.</p></section>`;
+      root.innerHTML = `<h1 class="page-title">Account</h1>
+        <section class="panel framed"><p class="small">Cloud sync is not set up for this app. Your log is saved only in this browser on this device. Use Log → Export backup to move it.</p></section>`;
       return;
     }
     if (needsSignIn()) renderAuth();
@@ -225,7 +225,7 @@ const Account = (() => {
       const c = await Sync.joinCoach(v.code);
       form.reset();
       coaches = { uid: null, list: null, error: "" };
-      msg = { text: `Linked to ${c.display_name || "your coach"}.` };
+      msg = { text: `Linked to ${c.display_name || "your PT"}.` };
       render();
     },
   };
@@ -271,7 +271,7 @@ const Account = (() => {
         return render();
       }
       if (ds.acctUnlink) {
-        if (!confirm("Unlink this coach? They lose access to your log.")) return;
+        if (!confirm("Unlink this PT? They lose access to your log.")) return;
         await Sync.unlinkCoach(ds.acctUnlink);
         coaches = { uid: null, list: null, error: "" };
         return render();

@@ -106,14 +106,14 @@ const Device = (() => {
     if (standalone() || localStorage.getItem(INSTALL_KEY)) return "";
     const close = `<button class="link" data-act="install-dismiss">Not now</button>`;
     if (deferred) {
-      return `<section class="panel install" data-reveal>
+      return `<section class="panel install">
         <div class="install-head"><b>Install Beyond Training</b>${close}</div>
         <p class="small muted">Open it from your home screen, full screen and offline in the gym.</p>
         <button class="btn acc full" data-act="install">Install app</button>
       </section>`;
     }
     if (isIos()) {
-      return `<section class="panel install" data-reveal>
+      return `<section class="panel install">
         <div class="install-head"><b>Add to your home screen</b>${close}</div>
         <p class="small muted">Open it full screen and offline in the gym.</p>
         <ol class="install-steps small"><li>Tap Share ${SHARE_ICON} in the browser bar.</li><li>Tap <b>Add to Home Screen</b>.</li></ol>
