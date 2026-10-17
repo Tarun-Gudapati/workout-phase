@@ -158,13 +158,13 @@ const Coach = (() => {
     if (!b) return;
     const ds = b.dataset;
     if (ds.coachRemove) {
-      if (!confirm("Remove this client? You lose access until they link again.")) return;
+      if (!(await UI.ask({ title: "Remove this client?", text: "You lose access until they link again.", ok: "Remove", danger: true }))) return;
       try {
         await Sync.removeAthlete(ds.coachRemove);
         cache = null;
         location.hash = "#/coach";
       } catch (e) {
-        alert("Could not remove: " + (e.message || e));
+        UI.tell("Could not remove", e.message || String(e));
       }
       return;
     }

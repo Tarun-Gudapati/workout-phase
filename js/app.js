@@ -282,10 +282,25 @@ function renderRanks() {
   `;
 }
 
-function startWorkout(dayId) {
+async function startWorkout(dayId) {
   const db = Store.db;
-  if (db.draft && !confirm("A workout is already in progress. Discard it and start a new one?")) return;
   const day = PROGRAM.days[dayId];
+  if (db.draft) {
+    const cur = PROGRAM.days[db.draft.dayId].name;
+    const logged = db.draft.entries.reduce((n, e) => n + e.sets.filter((x) => x.done).length, 0);
+    const same = db.draft.dayId === dayId && !db.draft.editingId;
+    const pick = await UI.choose({
+      title: db.draft.editingId ? `You're editing ${cur}` : `${cur} is in progress`,
+      text: logged ? `${plural(logged, "set")} logged so far.` : "No sets logged yet.",
+      buttons: [
+        { label: db.draft.editingId ? "Back to the edit" : `Continue ${cur}`, value: "go", kind: "acc" },
+        ...(same ? [] : [{ label: `Discard and start ${day.name}`, value: "new", kind: "danger" }]),
+        { label: "Cancel", value: null },
+      ],
+    });
+    if (pick === "go") { location.hash = "#/log"; return; }
+    if (pick !== "new") return;
+  }
   db.draft = {
     id: Store.uid(),
     dayId,
@@ -506,7 +521,7 @@ function tickSet(i, k) {
     if (s.reps === "" && s.goal) s.reps = s.goal;
     else if (s.reps === "" && p) s.reps = String(num(p.reps));
     if (s.reps === "") {
-      alert("Type the reps for this set first.");
+      UI.tell("Type the reps first", "Enter how many reps you did, then tick the set.");
       return;
     }
     s.done = true;
@@ -521,16 +536,16 @@ function tickSet(i, k) {
   rerender();
 }
 
-function finishWorkout() {
+async function finishWorkout() {
   const db = Store.db;
   const d = db.draft;
   const filled = d.entries.reduce((n, e) => n + Logic.workSets(e).length, 0);
   if (!filled) {
-    alert("Log at least one set with reps before you finish.");
+    UI.tell("Nothing logged yet", "Log at least one set with reps before you finish.");
     return;
   }
   const empty = d.entries.reduce((n, e) => n + e.sets.filter((s) => !num(s.reps)).length, 0);
-  if (empty && !confirm(`${empty} set${empty > 1 ? "s have" : " has"} no reps and will not be saved. Finish anyway?`)) return;
+  if (empty && !(await UI.ask({ title: "Finish workout?", text: `${plural(empty, "set")} without reps won't be saved.`, ok: "Finish" }))) return;
 
   const session = {
     id: d.editingId || d.id,
@@ -554,10 +569,13 @@ function finishWorkout() {
   location.hash = "#/summary/" + session.id;
 }
 
-function discardDraft() {
+async function discardDraft() {
   const d = Store.db.draft;
   if (!d) return;
-  if (!confirm(d.editingId ? "Cancel the edit? The saved workout stays as it was." : "Discard this workout? The sets you typed will be lost.")) return;
+  const ok = await UI.ask(d.editingId
+    ? { title: "Cancel the edit?", text: "The saved workout stays as it was.", ok: "Cancel edit", cancel: "Keep editing", danger: true }
+    : { title: "Discard workout?", text: "The sets you logged will be lost.", ok: "Discard", cancel: "Keep going", danger: true });
+  if (!ok || Store.db.draft !== d) return;
   Store.db.draft = null;
   Store.save();
   location.hash = "#/train";
@@ -757,11 +775,11 @@ function renderSummary(id) {
   `;
 }
 
-function editSession(id) {
+async function editSession(id) {
   const db = Store.db;
   const s = db.sessions.find((x) => x.id === id);
   if (!s) return;
-  if (db.draft && !confirm("A workout is in progress. Replace it with this edit?")) return;
+  if (db.draft && !(await UI.ask({ title: `${PROGRAM.days[db.draft.dayId].name} is in progress`, text: "Editing this workout discards it.", ok: "Discard and edit", danger: true }))) return;
   db.draft = {
     id: s.id, editingId: s.id, dayId: s.dayId, date: s.date, finishedAt: s.finishedAt, notes: s.notes || "", current: 0,
     entries: s.entries.map((e) => ({ ...e, notes: e.notes || "", sets: e.sets.map((x) => ({ kg: String(x.kg), reps: String(x.reps), rir: x.rir === "" ? "" : String(x.rir), done: true })) })),
@@ -819,17 +837,17 @@ function exportBackup() {
 
 function importBackup(file) {
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const msg = Store.account
         ? "Importing adds the backup to your account. Workouts and check-ins in the file replace the same entries in your account. Continue?"
         : "Importing replaces all data on this device with the backup. Continue?";
-      if (!confirm(msg)) return;
+      if (!(await UI.ask({ title: "Import backup?", text: msg.replace(/ Continue\?$/, ""), ok: "Import" }))) return;
       Store.importJson(reader.result);
-      alert("Backup imported.");
+      UI.tell("Backup imported");
       route();
     } catch (err) {
-      alert("Import failed: " + err.message);
+      UI.tell("Import failed", err.message);
     }
   };
   reader.readAsText(file);
@@ -997,7 +1015,7 @@ function renderBody() {
   `;
 }
 
-function saveCheckin(form) {
+async function saveCheckin(form) {
   const db = Store.db;
   const f = new FormData(form);
   const week = Logic.weekStart(f.get("week") + "T12:00:00");
@@ -1011,7 +1029,7 @@ function saveCheckin(form) {
     notes: f.get("notes") || "",
   };
   if (i >= 0) {
-    if (!confirm(`A check-in for the week of ${fmtWeek(week)} already exists. Replace it?`)) return;
+    if (!(await UI.ask({ title: "Replace check-in?", text: `You already have one for the week of ${fmtWeek(week)}.`, ok: "Replace" }))) return;
     db.checkins[i] = c;
   } else {
     db.checkins.push(c);
@@ -1189,17 +1207,19 @@ app.addEventListener("click", (ev) => {
   }
   if (ds.edit) return editSession(ds.edit);
   if (ds.delcheck) {
-    if (!confirm("Delete this check-in?")) return;
-    Store.db.checkins = Store.db.checkins.filter((c) => c.id !== ds.delcheck);
-    Store.save();
-    return rerender();
+    return UI.ask({ title: "Delete this check-in?", ok: "Delete", danger: true }).then((ok) => {
+      if (!ok) return;
+      Store.db.checkins = Store.db.checkins.filter((c) => c.id !== ds.delcheck);
+      Store.save();
+      rerender();
+    });
   }
   if (ds.apply || ds.steps) {
     const list = [...Store.db.checkins].sort((a, c) => c.week.localeCompare(a.week));
     if (ds.apply) Store.db.settings.kcal += +ds.apply;
     Store.db.settings.appliedFor = list[0] && list[0].week;
     Store.save();
-    if (ds.steps) alert("Add ~3,000 average daily steps for the next 14 days. Keep calories the same.");
+    if (ds.steps) UI.tell("Add ~3,000 steps a day", "Keep it up for the next 14 days. Keep calories the same.");
     return rerender();
   }
   switch (ds.act) {
@@ -1210,11 +1230,12 @@ app.addEventListener("click", (ev) => {
     case "export": return exportBackup();
     case "import": return document.getElementById("import-file").click();
     case "reset":
-      if (confirm(`Delete ALL workouts and check-ins ${Store.account ? "in your account, on every device" : "on this device"}? Export a backup first if you want to keep them.`) && confirm("Are you sure? This cannot be undone.")) {
+      return (async () => {
+        const first = await UI.ask({ title: "Delete all data?", text: `Every workout and check-in ${Store.account ? "in your account, on every device" : "on this device"}. Export a backup first if you want to keep them.`, ok: "Delete everything", danger: true });
+        if (!first || !(await UI.ask({ title: "Are you sure?", text: "This cannot be undone.", ok: "Yes, delete", danger: true }))) return;
         Store.reset();
         route();
-      }
-      return;
+      })();
   }
 });
 
