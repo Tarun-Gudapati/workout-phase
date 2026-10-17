@@ -49,7 +49,7 @@ const Account = (() => {
 
   const field = (lbl, name, type, extra = "") => `<label class="wide">${lbl}<input type="${type}" name="${name}" ${extra}></label>`;
   const emailField = () => field("Email", "email", "email", `autocomplete="email" required value="${esc(email)}"`);
-  const codeField = () => field("6-digit code from the email", "code", "text", `inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,10}" required`);
+  const codeField = () => field("Code from the email", "code", "text", `inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,10}" required`);
   const newPassField = (lbl = "New password · 8+ characters") => field(lbl, "password", "password", `autocomplete="new-password" minlength="8" required`);
   const submit = (text, cls = "acc") => `<button class="btn ${cls} big wide" type="submit">${text}</button>`;
 
