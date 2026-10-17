@@ -24,16 +24,17 @@
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --pad: clamp(16px, 4vw, 28px);
   --r: 22px;
+  --top-h: calc(54px + env(safe-area-inset-top));
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; overscroll-behavior-x: none; -webkit-tap-highlight-color: transparent; }
+html { scroll-padding-top: var(--top-h); -webkit-text-size-adjust: 100%; overscroll-behavior-x: none; -webkit-tap-highlight-color: transparent; }
 html.on-log { overscroll-behavior-y: contain; }
 body {
   margin: 0; color: var(--ink);
   background: radial-gradient(120% 60% at 100% -10%, rgba(250, 17, 79, 0.10), transparent 60%) no-repeat, var(--bg);
-  background-attachment: fixed;
   font: 16px/1.45 var(--sans); font-feature-settings: "tnum" 1;
+  padding-top: var(--top-h);
   padding-bottom: calc(100px + env(safe-area-inset-bottom));
   overflow-x: hidden;
 }
@@ -62,7 +63,8 @@ button, .btn, .cta, .pill, .tabs a, .dot, .subtabs a, summary { -webkit-user-sel
 
 /* ---------- Top bar ---------- */
 .top {
-  position: sticky; top: 0; z-index: 40;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+  height: var(--top-h);
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: calc(10px + env(safe-area-inset-top)) max(var(--pad), env(safe-area-inset-right)) 10px max(var(--pad), env(safe-area-inset-left));
   background: rgba(11, 11, 15, 0.82); -webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px);
@@ -274,7 +276,7 @@ table.sets td:last-child { width: 54px; }
 .small-btns .btn { flex: 0 0 auto; }
 
 /* Workout header */
-.log-head { position: sticky; top: calc(54px + env(safe-area-inset-top)); z-index: 30; background: var(--bg); padding: 4px 0 8px; }
+.log-head { position: sticky; top: var(--top-h); z-index: 30; background: var(--bg); padding: 4px 0 8px; }
 .log-head .row1 { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .log-head h1 { font-size: 1.6rem; }
 .log-head .step { color: var(--ink); font-weight: 600; font-size: 0.86rem; white-space: nowrap; }
