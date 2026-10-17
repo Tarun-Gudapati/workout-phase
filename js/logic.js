@@ -133,7 +133,6 @@ const Logic = (() => {
 
   const dayKey = (d) => Store.DAYS[(d.getDay() + 6) % 7];
   /* Same integer for the same local calendar date on every device, whatever the time zone. */
-  const dayNumber = (d = new Date()) => Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5);
 
   /* This week (from Monday) against settings.week. A finished session clears a scheduled day if it is the
      same workout, done that day or later this week (a make-up). Today claims a session done today first. */
@@ -221,6 +220,6 @@ const Logic = (() => {
   return {
     num, round, fmtKg, e1rm, workSets, entryStats, fmtSet, fmtSets,
     previousEntry, previousSessionOfDay, compareEntry, suggestNext, sessionStats,
-    ymd, parseYmd, weekStart, addWeeks, weekTotals, pct, dietDecision, dayKey, dayNumber, weekPlan,
+    ymd, parseYmd, weekStart, addWeeks, weekTotals, pct, dietDecision, dayKey, weekPlan,
   };
 })();

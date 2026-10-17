@@ -6,7 +6,7 @@ const Coach = (() => {
   let cache = null;
   let showAll = false;
 
-  const title = (t = "Coach") => `<h1 class="display page-title kinetic">${esc(t)}</h1>`;
+  const title = (t = "Clients") => `<h1 class="page-title">${esc(t)}</h1>`;
   const exName = (id) => (EXERCISES[id] ? EXERCISES[id].name : id);
   const dayName = (id) => (PROGRAM.days[id] ? PROGRAM.days[id].name : id || "Workout");
   const VERDICT = { up: "Better", heavier: "Heavier", same: "Same", down: "Lower", new: "New", skip: "Skipped" };
@@ -31,19 +31,19 @@ const Coach = (() => {
       const body = c
         ? `${c.weight ? num(c.weight).toFixed(1) + " kg" : "–"}${p ? trend(c.weight, p.weight, "") : ""}${c.waist ? ` · ${num(c.waist).toFixed(1)} cm${p ? trend(c.waist, p.waist, "") : ""}` : ""}`
         : "No check-in";
-      return `<a class="hist" href="#/coach/${encodeURIComponent(a.athlete_id)}" data-reveal>
+      return `<a class="hist" href="#/coach/${encodeURIComponent(a.athlete_id)}">
         <span><span class="name">${esc(a.display_name || "Athlete")}</span><br><span class="mono muted">${last ? `Last ${fmtDate(last.date)} · ${agoText(last.date)}` : "No workouts yet"}</span></span>
         <span class="r mono">${ss.filter((s) => Logic.weekStart(s.date) === wk).length} this week<br>${body}</span></a>`;
     });
     return `${title()}
-      ${label("(01) Your coach code", "share it")}
-      <section class="panel framed" data-reveal>
+      ${label("Your PT code", "share with clients")}
+      <section class="panel framed">
         <div class="bignum">${esc(code)}</div>
-        <p class="small muted">Athletes enter this code under Account → Coach. You get read-only access to their workouts, check-ins and calorie target.</p>
+        <p class="small muted">Clients enter this under Account → Your PT. You see their workouts and check-ins (read only).</p>
         <div class="row"><button class="btn acc" data-coach="copy">Copy code</button></div>
       </section>
-      ${label("(02) Athletes", `${athletes.length} linked`)}
-      ${rows.length ? rows.join("") : `<p class="muted">No athletes yet. Share your code.</p>`}`;
+      ${label("Clients", `${athletes.length}`)}
+      ${rows.length ? rows.join("") : `<p class="muted">No clients yet. Share your code.</p>`}`;
   }
 
   function lifts(sessions) {
@@ -65,7 +65,7 @@ const Coach = (() => {
       return `<tr${e.notes ? ` class="has-note"` : ""}><td>${esc(exName(e.exId))}</td><td class="small">${esc(Logic.fmtSets(e)) || "–"}</td><td class="r"><span class="chip c-${c.verdict}">${VERDICT[c.verdict]}</span></td></tr>
         ${e.notes ? `<tr class="note-row"><td colspan="3"><span class="small ex-note">${esc(e.notes)}</span></td></tr>` : ""}`;
     }).join("");
-    return `<article class="panel" data-reveal>
+    return `<article class="panel">
       <div class="cmp-head"><span class="ex-name">${esc(dayName(s.dayId))}</span><span class="mono muted">${fmtDate(s.date)}</span></div>
       <div class="mono muted">${st.sets} sets · ${fmtInt(st.volume)} kg${st.minutes ? ` · ${st.minutes} min` : ""}</div>
       <table class="mini"><tbody>${rows}</tbody></table>
@@ -86,24 +86,24 @@ const Coach = (() => {
     const week = a.settings && a.settings.week;
     const weekText = week ? Store.DAYS.map((k) => `${DAY_NAMES[k].slice(0, 3)} ${PROGRAM.order.includes(week[k]) ? PROGRAM.days[week[k]].name : "Rest"}`).join(" · ") : "";
     return `${title(a.display_name || "Athlete")}
-      <p class="mono muted">${sessions.length} workouts logged · read only · <a class="link" href="#/coach">All athletes</a></p>
-      ${label("(01) This week", "vs last week")}
-      <div class="stats" data-reveal>
+      <p class="mono muted">${sessions.length} workouts logged · read only · <a class="link" href="#/coach">All clients</a></p>
+      ${label("This week", "vs last week")}
+      <div class="stats">
         ${stat(cur.sessions, "Workouts", Logic.pct(cur.sessions, prev.sessions))}
         ${stat(cur.sets, "Hard sets", Logic.pct(cur.sets, prev.sets))}
         ${stat(cur.volume, "Volume kg", Logic.pct(cur.volume, prev.volume), "k")}
       </div>
       ${weekText ? `<p class="small muted"><span class="mono">Their week</span> ${esc(weekText)}</p>` : ""}
-      ${label("(02) Diet", `target ${fmtInt(kcal)} kcal`)}
-      <section class="panel framed decision d-${dec.action}" data-reveal><h3>${esc(dec.title)}</h3><p class="small">${esc(dec.text)}</p></section>
-      ${label("(03) Key lifts", "latest vs first")}
-      <section class="panel" data-reveal>
+      ${label("Diet", `target ${fmtInt(kcal)} kcal`)}
+      <section class="panel framed decision d-${dec.action}"><h3>${esc(dec.title)}</h3><p class="small">${esc(dec.text)}</p></section>
+      ${label("Key lifts", "latest vs first")}
+      <section class="panel">
         ${top.length ? `<table class="mini"><thead><tr><th>Exercise</th><th class="r">Latest</th><th class="r">Δ</th></tr></thead><tbody>
           ${top.map((l) => `<tr><td>${esc(exName(l.exId))} <span class="mono muted">×${l.n}</span></td><td class="r">${l.bw ? `${l.latest} reps` : `${l.latest.toFixed(1)} kg`}</td><td class="r ${deltaCls(l.change)}">${pctText(l.change)}</td></tr>`).join("")}
         </tbody></table><p class="small muted">Best set as estimated 1RM (total reps for bodyweight moves).</p>` : `<p class="small muted">No workouts yet.</p>`}
       </section>
-      ${label("(04) Check-ins", `${checkins.length} weeks`)}
-      <section class="panel" data-reveal>
+      ${label("Check-ins", `${checkins.length} weeks`)}
+      <section class="panel">
         ${checks.length ? `<table class="mini"><thead><tr><th>Week</th><th class="r">Kg</th><th class="r">Waist</th><th class="r">Kcal</th><th class="r">Prot.</th><th class="r">Steps</th></tr></thead><tbody>
           ${checks.map((c, i) => {
             const p = checks[i + 1];
@@ -115,16 +115,16 @@ const Coach = (() => {
           }).join("")}
         </tbody></table>` : `<p class="small muted">No check-ins yet.</p>`}
       </section>
-      ${label("(05) Workouts", `${recent.length} total`)}
+      ${label("Workouts", `${recent.length} total`)}
       ${shown.map((s) => sessionCard(s, sessions)).join("")}
       ${recent.length > shown.length ? `<button class="btn full" data-coach="all">Show all ${recent.length} workouts</button>` : ""}
-      <button class="btn danger full" data-coach-remove="${esc(a.athlete_id)}">Remove athlete</button>`;
+      <button class="btn danger full" data-coach-remove="${esc(a.athlete_id)}">Remove client</button>`;
   }
 
   async function detail(id) {
     const athletes = await Sync.myAthletes();
     const athlete = athletes.find((a) => a.athlete_id === id);
-    if (!athlete) return `${title("Not found")}<p class="muted">This athlete is not linked to you.</p><a class="btn" href="#/coach">All athletes</a>`;
+    if (!athlete) return `${title("Not found")}<p class="muted">This client is not linked to you.</p><a class="btn" href="#/coach">All clients</a>`;
     const data = await Sync.athleteDetail(id);
     cache = { id, athlete, ...data };
     return detailHtml(cache);
@@ -137,8 +137,8 @@ const Coach = (() => {
 
   function render(arg) {
     const t = ++token;
-    if (!Sync.isCoach) return show(`${title()}<p class="muted">The coach view is for coach accounts. The app owner can promote your account in Supabase.</p>`);
-    if (!navigator.onLine) return show(`${title()}<section class="panel warn" data-reveal><b>You are offline.</b> <span class="small muted">The coach view loads athlete data live. Connect to the internet and open this tab again.</span></section>`);
+    if (!Sync.isCoach) return show(`${title()}<p class="muted">This view is for PT accounts.</p>`);
+    if (!navigator.onLine) return show(`${title()}<section class="panel warn"><b>You are offline.</b> <span class="small muted">Client data loads live. Connect and try again.</span></section>`);
     const id = arg ? decodeURIComponent(arg) : null;
     if (id && cache && cache.id === id) return show(detailHtml(cache));
     if (!id) showAll = false;
@@ -149,7 +149,7 @@ const Coach = (() => {
         if (t === token && location.hash === hash) show(html);
       })
       .catch((e) => {
-        if (t === token && location.hash === hash) show(`${title()}<section class="panel warn" data-reveal><b>Could not load.</b> <span class="small">${esc(e.message || String(e))}</span><div class="row"><button class="btn" data-coach="retry">Retry</button></div></section>`);
+        if (t === token && location.hash === hash) show(`${title()}<section class="panel warn"><b>Could not load.</b> <span class="small">${esc(e.message || String(e))}</span><div class="row"><button class="btn" data-coach="retry">Retry</button></div></section>`);
       });
   }
 
@@ -158,7 +158,7 @@ const Coach = (() => {
     if (!b) return;
     const ds = b.dataset;
     if (ds.coachRemove) {
-      if (!confirm("Remove this athlete? You lose access to their log until they join again.")) return;
+      if (!confirm("Remove this client? You lose access until they link again.")) return;
       try {
         await Sync.removeAthlete(ds.coachRemove);
         cache = null;
