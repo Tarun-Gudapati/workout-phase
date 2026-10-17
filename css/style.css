@@ -75,6 +75,12 @@ button { font: inherit; color: inherit; }
 .pill.live { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .pill.live::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-ink); margin-right: 6px; vertical-align: 1px; animation: pulse 1.2s infinite; }
 @keyframes pulse { 50% { opacity: 0.2; } }
+.pill.sync { color: var(--muted); }
+.pill.sync::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: 1px; }
+.pill.s-syncing::before, .pill.s-pending::before { animation: pulse 1.2s infinite; }
+.pill.s-offline::before { background: var(--dim); }
+.pill.s-error, .pill.s-signedout { color: var(--warn); border-color: rgba(255, 176, 46, 0.5); }
+.pill.s-error::before, .pill.s-signedout::before { background: var(--warn); }
 
 main { max-width: 860px; margin: 0 auto; padding: 4px var(--pad) 24px; }
 

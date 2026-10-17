@@ -75,7 +75,7 @@ function hunterRank(n) {
 }
 
 function foot() {
-  return `<footer class="foot"><div class="big">Arise</div><span class="mono">Jin-Woo Build · Phase 1</span><span class="mono">Data stays on this device</span></footer>`;
+  return `<footer class="foot"><div class="big">Arise</div><span class="mono">Jin-Woo Build · Phase 1</span><span class="mono">${Store.account ? "Synced to your account" : "Data stays on this device"}</span></footer>`;
 }
 
 /* ---------- Motion ---------- */
@@ -127,7 +127,12 @@ setInterval(tickClock, 20000);
 
 /* ---------- Router ---------- */
 
-const VIEWS = () => ({ train: renderTrain, log: renderLog, summary: renderSummary, history: renderHistory, progress: renderProgress, body: renderBody, plan: renderPlan });
+const VIEWS = () => ({
+  train: renderTrain, log: renderLog, summary: renderSummary, history: renderHistory, progress: renderProgress, body: renderBody, plan: renderPlan,
+  account: Account.render, coach: Coach.render,
+});
+
+const currentView = () => (location.hash.replace(/^#\/?/, "") || "train").split("/")[0];
 
 function paint(keepScroll) {
   const y = window.scrollY;
@@ -155,9 +160,10 @@ const rerender = () => paint(true);
 window.addEventListener("hashchange", route);
 
 function renderTopRight(view) {
+  document.querySelector('.tabs a[data-tab="coach"]').classList.toggle("hidden", !Sync.isCoach);
   const el = document.getElementById("top-right");
   const d = Store.db.draft;
-  el.innerHTML = d && view !== "log" ? `<a class="pill live" href="#/log">${esc(PROGRAM.days[d.dayId].name)} live</a>` : "";
+  el.innerHTML = (d && view !== "log" ? `<a class="pill live" href="#/log">${esc(PROGRAM.days[d.dayId].name)} live</a>` : "") + Account.pill();
 }
 
 /* ---------- Train ---------- */
@@ -190,7 +196,7 @@ function renderTrain() {
   const lastOf = (id) => [...fin].reverse().find((s) => s.dayId === id);
   const lastNext = lastOf(next);
   const names = nd.slots.map((s) => EXERCISES[db.swaps[s.id] || s.ex].name);
-  const backupDue = fin.length >= 3 && (!db.settings.lastBackup || daysAgo(db.settings.lastBackup) >= 14);
+  const backupDue = !Store.account && fin.length >= 3 && (!db.settings.lastBackup || daysAgo(db.settings.lastBackup) >= 14);
   const r = hunterRank(fin.length);
 
   app.innerHTML = `
@@ -617,7 +623,9 @@ function renderHistory() {
       }).join("")}`).join("")}
     ${label("Backup", lb ? "last " + agoText(lb) : "never backed up")}
     <section class="panel sys" data-reveal>
-      <p class="small">Your log is saved only in this browser on this device. If you clear browser data, the log is gone. Export a backup every 1-2 weeks.</p>
+      ${Store.account
+        ? `<p class="small">Your log syncs to your account and stays available offline on this device. Export a file backup any time. Importing adds the file to your account.</p>`
+        : `<p class="small">Your log is saved only in this browser on this device. If you clear browser data, the log is gone. Export a backup every 1-2 weeks.${Sync.enabled ? ` Or <a class="link" href="#/account">sign in</a> to sync it.` : ""}</p>`}
       <div class="row">
         <button class="btn acc" data-act="export">Export backup</button>
         <button class="btn" data-act="import">Import backup</button>
@@ -643,7 +651,10 @@ function importBackup(file) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      if (!confirm("Importing replaces all data on this device with the backup. Continue?")) return;
+      const msg = Store.account
+        ? "Importing adds the backup to your account. Workouts and check-ins in the file replace the same entries in your account. Continue?"
+        : "Importing replaces all data on this device with the backup. Continue?";
+      if (!confirm(msg)) return;
       Store.importJson(reader.result);
       alert("Backup imported.");
       route();
@@ -1006,7 +1017,8 @@ app.addEventListener("click", (ev) => {
     case "export": return exportBackup();
     case "import": return document.getElementById("import-file").click();
     case "reset":
-      if (confirm("Delete ALL workouts and check-ins on this device? Export a backup first if you want to keep them.") && confirm("Are you sure? This cannot be undone.")) {
+      const where = Store.account ? "in your account, on every device" : "on this device";
+      if (confirm(`Delete ALL workouts and check-ins ${where}? Export a backup first if you want to keep them.`) && confirm("Are you sure? This cannot be undone.")) {
         Store.reset();
         route();
       }
@@ -1029,4 +1041,38 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
+/* ---------- Sync ---------- */
+
+const isTyping = () => {
+  const a = document.activeElement;
+  return !!a && app.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
+};
+
+/* A pull never repaints under the user's fingers: wait until they leave the field or close the sheet. */
+let refreshDue = false;
+function refreshFromSync() {
+  const v = currentView();
+  if (v === "account" || v === "coach") return renderTopRight(v);
+  if (isTyping() || !modal.classList.contains("hidden")) {
+    refreshDue = true;
+    return;
+  }
+  refreshDue = false;
+  rerender();
+}
+app.addEventListener("focusout", () => setTimeout(() => refreshDue && refreshFromSync(), 300));
+modal.addEventListener("click", () => setTimeout(() => refreshDue && refreshFromSync(), 300));
+
+Sync.on("status", () => {
+  renderTopRight(currentView());
+  if (currentView() === "account") Account.refreshStatus();
+});
+Sync.on("data", refreshFromSync);
+Sync.on("account", route);
+Sync.on("profile", () => (isTyping() ? renderTopRight(currentView()) : paint(true)));
+Sync.on("migrate", Account.offerLocal);
+Sync.on("recovery", Account.recover);
+Sync.start();
+
+if (!location.hash && Account.wantsAuth()) history.replaceState(null, "", "#/account");
 route();
