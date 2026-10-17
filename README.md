@@ -1,7 +1,8 @@
-# Jin-Woo Build
+# Beyond Training
 
-Gym-tracking PWA: workout quests, progression targets, weekly check-ins and the Phase 1 diet plan.
-Plain HTML/CSS/JS, no build step, deployed as a static site on Vercel.
+Mobile-first training PWA: a weekly plan, one-exercise-at-a-time workout logging, progression targets,
+training levels, weekly check-ins and the Phase 1 nutrition plan. Plain HTML/CSS/JS, no build step, deployed as
+a static site.
 
 Run locally: `python3 -m http.server 8080` and open http://localhost:8080.
 

@@ -37,7 +37,7 @@ const Coach = (() => {
     });
     return `${title()}
       ${label("(01) Your coach code", "share it")}
-      <section class="panel sys" data-reveal>
+      <section class="panel framed" data-reveal>
         <div class="bignum">${esc(code)}</div>
         <p class="small muted">Athletes enter this code under Account → Coach. You get read-only access to their workouts, check-ins and calorie target.</p>
         <div class="row"><button class="btn acc" data-coach="copy">Copy code</button></div>
@@ -62,7 +62,8 @@ const Coach = (() => {
     const rows = s.entries.map((e) => {
       const prev = Logic.previousEntry(e.exId, s.date, s.id, all);
       const c = Logic.compareEntry(e, prev && prev.entry);
-      return `<tr><td>${esc(exName(e.exId))}</td><td class="small">${esc(Logic.fmtSets(e)) || "–"}</td><td class="r"><span class="chip c-${c.verdict}">${VERDICT[c.verdict]}</span></td></tr>`;
+      return `<tr${e.notes ? ` class="has-note"` : ""}><td>${esc(exName(e.exId))}</td><td class="small">${esc(Logic.fmtSets(e)) || "–"}</td><td class="r"><span class="chip c-${c.verdict}">${VERDICT[c.verdict]}</span></td></tr>
+        ${e.notes ? `<tr class="note-row"><td colspan="3"><span class="small ex-note">${esc(e.notes)}</span></td></tr>` : ""}`;
     }).join("");
     return `<article class="panel" data-reveal>
       <div class="cmp-head"><span class="ex-name">${esc(dayName(s.dayId))}</span><span class="mono muted">${fmtDate(s.date)}</span></div>
@@ -82,6 +83,8 @@ const Coach = (() => {
     const recent = sessions.slice().reverse();
     const shown = showAll ? recent : recent.slice(0, 10);
     const checks = checkins.slice().reverse();
+    const week = a.settings && a.settings.week;
+    const weekText = week ? Store.DAYS.map((k) => `${DAY_NAMES[k].slice(0, 3)} ${PROGRAM.order.includes(week[k]) ? PROGRAM.days[week[k]].name : "Rest"}`).join(" · ") : "";
     return `${title(a.display_name || "Athlete")}
       <p class="mono muted">${sessions.length} workouts logged · read only · <a class="link" href="#/coach">All athletes</a></p>
       ${label("(01) This week", "vs last week")}
@@ -90,8 +93,9 @@ const Coach = (() => {
         ${stat(cur.sets, "Hard sets", Logic.pct(cur.sets, prev.sets))}
         ${stat(cur.volume, "Volume kg", Logic.pct(cur.volume, prev.volume), "k")}
       </div>
+      ${weekText ? `<p class="small muted"><span class="mono">Their week</span> ${esc(weekText)}</p>` : ""}
       ${label("(02) Diet", `target ${fmtInt(kcal)} kcal`)}
-      <section class="panel sys decision d-${dec.action}" data-reveal><h3>${esc(dec.title)}</h3><p class="small">${esc(dec.text)}</p></section>
+      <section class="panel framed decision d-${dec.action}" data-reveal><h3>${esc(dec.title)}</h3><p class="small">${esc(dec.text)}</p></section>
       ${label("(03) Key lifts", "latest vs first")}
       <section class="panel" data-reveal>
         ${top.length ? `<table class="mini"><thead><tr><th>Exercise</th><th class="r">Latest</th><th class="r">Δ</th></tr></thead><tbody>
