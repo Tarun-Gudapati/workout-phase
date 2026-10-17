@@ -1,9 +1,9 @@
 /* Network first, cache fallback: the app keeps working in a gym with no signal.
    Cross-origin requests (Supabase API and auth) are never touched, so account data is never cached here. */
-const CACHE = "jw-gym-v3";
+const CACHE = "jw-gym-v4";
 const CORE = [
   "./", "index.html", "css/fonts.css", "css/style.css", "manifest.webmanifest", "icon.svg",
-  "js/data.js", "js/config.js", "js/vendor/supabase.js", "js/store.js", "js/logic.js", "js/sync.js", "js/account.js", "js/coach.js", "js/app.js",
+  "js/data.js", "js/muscles.js", "js/config.js", "js/vendor/supabase.js", "js/store.js", "js/logic.js", "js/sync.js", "js/account.js", "js/coach.js", "js/app.js",
   "fonts/BigShouldersDisplay-100_900.woff2", "fonts/InterTight-400_800.woff2", "fonts/JetBrainsMono-400.woff2", "fonts/JetBrainsMono-600.woff2",
 ];
 
