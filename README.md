@@ -1,8 +1,8 @@
 # Beyond Training
 
-Mobile-first training PWA: a weekly plan, one-exercise-at-a-time workout logging, progression targets,
-training levels, weekly check-ins and the Phase 1 nutrition plan. Plain HTML/CSS/JS, no build step, deployed as
-a static site.
+Mobile-first gym PWA for people training with a PT: a weekly plan, one-exercise-at-a-time workout logging,
+progression targets, E–S ranks, weekly check-ins and the nutrition plan. The PT links with a code and sees the
+client's log read only. Plain HTML/CSS/JS, no build step, deployed as a static site.
 
 Run locally: `python3 -m http.server 8080` and open http://localhost:8080.
 
@@ -35,7 +35,8 @@ with Log → Export / Import backup. Filling in `js/config.js` adds accounts, sy
    ```sql
    update profiles set role = 'coach' where id = (select id from auth.users where email = lower('coach@example.com'));
    ```
-   The coach reloads the app and gets a Coach tab with their code. Athletes enter it under Account → Coach.
+   The PT reloads the app and gets a Clients tab with their code. Clients enter it under Account → Your PT.
+   (In the database the role is still called `coach`.)
 
 On first sign-in, a device with an existing local log offers to upload it to the account (merged, nothing is
 overwritten). The old data is also kept in this browser's localStorage as `jw.gym.v1.backup-<time>`.
