@@ -40,7 +40,7 @@ const Store = (() => {
     checkins: [],
     draft: null,
     swaps: {},
-    settings: { kcal: DIET.kcalStart, lastBackup: null, ...exampleWeek() },
+    settings: { kcal: DIET.kcalStart, lastBackup: null, vibrate: true, sound: false, ...exampleWeek() },
   });
 
   const emptyMeta = () => ({
@@ -194,7 +194,7 @@ const Store = (() => {
 
   function importJson(text) {
     const d = JSON.parse(text);
-    if (!d || !Array.isArray(d.sessions)) throw new Error("This file is not a Jin-Woo gym backup.");
+    if (!d || !Array.isArray(d.sessions)) throw new Error("This file is not a Beyond Training backup.");
     if (account) mergeIn(d, true);
     else db = normalize(d);
     save();
