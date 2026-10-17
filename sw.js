@@ -1,6 +1,6 @@
 /* Network first, cache fallback: the app keeps working in a gym with no signal.
    Cross-origin requests (Supabase API and auth) are never touched, so account data is never cached here. */
-const CACHE = "bt-v9";
+const CACHE = "bt-v10";
 const CORE = [
   "./", "index.html", "css/fonts.css", "css/style.css", "manifest.webmanifest", "icon.svg", "icon-192.png", "apple-touch-icon.png",
   "js/ui.js", "js/data.js", "js/muscles.js", "js/config.js", "js/vendor/supabase.js", "js/store.js", "js/logic.js", "js/sync.js", "js/account.js", "js/coach.js", "js/device.js", "js/app.js",
@@ -8,7 +8,7 @@ const CORE = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE.map((u) => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));
 });
 
 /* Every other cache on this origin is an older version of this app (jw-gym-*, bt-*). */
@@ -21,8 +21,9 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
+  /* GitHub Pages sends max-age=600; "no-cache" revalidates with the server so a deploy shows up on the next open. */
   e.respondWith(
-    fetch(req)
+    fetch(req.mode === "navigate" ? req.url : req, { cache: "no-cache" })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();

@@ -1309,7 +1309,18 @@ document.addEventListener("keydown", (ev) => {
 });
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register("sw.js").then((reg) => {
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") reg.update().catch(() => {}); });
+  }).catch(() => {});
+  /* A new version took over: reload so the page runs its code. Drafts are in localStorage, so nothing is lost. */
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloading) return;
+    const go = () => { if (!reloading) { reloading = true; location.reload(); } };
+    if (!isTyping() && !document.querySelector(".dlg")) go();
+    else document.addEventListener("visibilitychange", go, { once: true });
+  });
 }
 
 /* ---------- Sync ---------- */
