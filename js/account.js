@@ -51,7 +51,7 @@ const Account = (() => {
   const emailField = () => field("Email", "email", "email", `autocomplete="email" required value="${esc(email)}"`);
   const codeField = () => field("6-digit code from the email", "code", "text", `inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,10}" required`);
   const newPassField = (lbl = "New password · 8+ characters") => field(lbl, "password", "password", `autocomplete="new-password" minlength="8" required`);
-  const submit = (text) => `<button class="btn acc big wide" type="submit">${text}</button>`;
+  const submit = (text, cls = "acc") => `<button class="btn ${cls} big wide" type="submit">${text}</button>`;
 
   function authForm() {
     switch (mode) {
@@ -105,7 +105,7 @@ const Account = (() => {
         : `<p class="small muted">No coach linked.</p>`;
     return `${own}<section class="panel" data-reveal>
         ${list}
-        <form id="acct-join" class="form" style="margin-top:12px">${field("Coach code", "code", "text", `autocapitalize="characters" autocomplete="off" maxlength="12" required`)}${submit("Join coach")}</form>
+        <form id="acct-join" class="form" style="margin-top:12px">${field("Coach code", "code", "text", `autocapitalize="characters" autocomplete="off" maxlength="12" required`)}${submit("Join coach", "")}</form>
         <p class="small muted">A coach can see your workouts, check-ins and calorie target. They cannot change anything. Unlink any time.</p>
       </section>`;
   }
@@ -140,8 +140,8 @@ const Account = (() => {
       ${coachSection()}
       ${label("(03) Profile")}
       <section class="panel" data-reveal>
-        <form id="acct-name" class="form">${field("Display name · coaches see this", "name", "text", `required value="${esc(p.display_name || "")}"`)}${submit("Save name")}</form>
-        ${recovery ? "" : `<form id="acct-pass" class="form" style="margin-top:12px">${newPassField("Change password")}${submit("Save password")}</form>`}
+        <form id="acct-name" class="form">${field("Display name · coaches see this", "name", "text", `required value="${esc(p.display_name || "")}"`)}${submit("Save name", "")}</form>
+        ${recovery ? "" : `<form id="acct-pass" class="form" style="margin-top:12px">${newPassField("Change password")}${submit("Save password", "")}</form>`}
       </section>
     `;
     loadCoaches();
