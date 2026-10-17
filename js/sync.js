@@ -23,6 +23,7 @@ const Sync = (() => {
   let running = false;
   let again = false;
   let offeredLocal = false;
+  let profileFresh = false;
   const handlers = {};
 
   const on = (ev, fn) => (handlers[ev] = handlers[ev] || []).push(fn);
@@ -181,6 +182,7 @@ const Sync = (() => {
       lastSync = new Date().toISOString();
       setState("idle");
       if (changed) emit("data");
+      if (!profileFresh) refreshProfile();
       offerLocal();
     } catch (e) {
       if (e instanceof Switched) return;
@@ -243,8 +245,11 @@ const Sync = (() => {
       retryAt = 0;
     }
     profile = cachedProfile(u.id) || profile;
-    if (switched) emit("account");
-    refreshProfile();
+    if (switched) {
+      profileFresh = false;
+      emit("account");
+    }
+    if (navigator.onLine) refreshProfile();
   }
 
   async function refreshProfile() {
@@ -252,6 +257,7 @@ const Sync = (() => {
     const { data, error } = await client.from("profiles").select("id, display_name, role, coach_code").eq("id", user.id).maybeSingle();
     if (error || !data || !user || data.id !== user.id) return;
     profile = { ...data, email: user.email };
+    profileFresh = true;
     localStorage.setItem(PROFILE_KEY + user.id, JSON.stringify(profile));
     emit("profile");
   }
