@@ -355,6 +355,13 @@ function renderLevels() {
     <section class="panel small muted" data-reveal><p>Levels count completed workouts. They measure consistency, not strength. Strength is tracked per exercise in Stats.</p></section>
     ${foot()}
   `;
+  /* Runs after paint() resets the scroll, so the current level is on screen. */
+  requestAnimationFrame(() => {
+    const here = app.querySelector(".rung.here");
+    if (!here) return;
+    const r = here.getBoundingClientRect();
+    if (r.bottom > innerHeight - 110) window.scrollTo({ top: r.top + scrollY - innerHeight * 0.3, behavior: "instant" });
+  });
 }
 
 function startWorkout(dayId) {
