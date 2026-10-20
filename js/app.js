@@ -33,9 +33,10 @@ function tierBadge(t) {
   return `<span class="tier t-${cls}">${t === "Pick" ? "Nippard pick" : esc(t) + " tier"}</span>`;
 }
 
+const thumbImgs = (ex) => `<img src="${imgSrc(ex, 0)}" alt="" ${IMG}><img class="f2" src="${imgSrc(ex, 1)}" alt="" ${IMG}>`;
+
 function thumb(ex, attrs = "") {
-  return `<button class="thumb" ${attrs} aria-label="How to do ${esc(ex.name)}">
-    <img src="${imgSrc(ex, 0)}" alt="" ${IMG}><img class="f2" src="${imgSrc(ex, 1)}" alt="" ${IMG}></button>`;
+  return `<button class="thumb" ${attrs} aria-label="How to do ${esc(ex.name)}">${thumbImgs(ex)}</button>`;
 }
 
 const mmap = (ex) => `<div class="mmap">${MuscleMap.svg(ex.muscle, ex.secondary || [])}</div>`;
@@ -591,22 +592,26 @@ function openSwap(i) {
     <div class="mono muted">Swap exercise</div>
     <h3>${esc(cur.name)}</h3>
     <p class="small muted">Use this when the machine is taken or missing. The app remembers your choice for next time.</p>
-    ${options.length ? options.map(([id, x]) => `<button class="opt" data-pick="${i}:${id}">${thumb(x, "tabindex=-1")}<span><b>${esc(x.name)}</b> ${tierBadge(x.tier)}</span></button>`).join("") : `<p>No alternatives in this group.</p>`}
+    ${options.length ? options.map(([id, x]) => `<button class="opt" data-pick="${i}:${id}"><span class="thumb" aria-hidden="true">${thumbImgs(x)}</span><span><b>${esc(x.name)}</b> ${tierBadge(x.tier)}</span></button>`).join("") : `<p>No alternatives in this group.</p>`}
     <button class="btn full" data-act="close">Cancel</button>
   </div>`;
   modal.classList.remove("hidden");
 }
 
-function pickSwap(i, id) {
+async function pickSwap(i, id) {
   const db = Store.db;
-  const e = db.draft.entries[i];
+  const d = db.draft;
+  const e = d.entries[i];
+  const logged = e.sets.filter((s) => num(s.reps) > 0).length;
+  closeModal();
+  if (logged && !(await UI.ask({ title: `Swap to ${EXERCISES[id].name}?`, text: `The ${plural(logged, "set")} you logged for ${EXERCISES[e.exId].name} will be cleared.`, ok: "Swap", cancel: "Keep sets", danger: true }))) return;
+  if (Store.db.draft !== d) return;
   e.exId = id;
   e.sets = blankSets(id, e.target.sets, e.target.reps);
   const slot = Object.values(PROGRAM.days).flatMap((dd) => dd.slots).find((s) => s.id === e.slotId);
   if (slot && slot.ex === id) delete db.swaps[e.slotId];
   else db.swaps[e.slotId] = id;
   Store.save();
-  closeModal();
   rerender();
 }
 
